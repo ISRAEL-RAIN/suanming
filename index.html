@@ -53,14 +53,11 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            transition: all 0.5s ease;
             z-index: 10;
         }
 
         #home-page.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(1.1);
+            display: none;
         }
 
         .home-content {
@@ -115,44 +112,33 @@
             transform: scale(0.95);
         }
 
-        /* ========== 答题页翻页容器 ========== */
-        .flip-container {
+        /* StPageFlip 容器 */
+        #question-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            display: none;
             z-index: 5;
         }
 
-        .flip-container.hidden {
-            display: none;
+        #question-container.active {
+            display: block;
         }
 
-        .flip-wrapper {
-            display: flex;
-            width: 200%;
+        /* 答题页样式 */
+        .question-page {
+            width: 100%;
             height: 100%;
-            transition: transform 0s; /* 拖动时无过渡 */
-        }
-
-        .flip-wrapper.animating {
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .flip-page {
-            width: 50%;
-            height: 100%;
+            padding: 40px 20px 80px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            position: relative;
+            background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
         }
 
-        /* 答题内容 */
         .question-content {
             width: 100%;
             max-width: 500px;
@@ -206,7 +192,7 @@
             font-size: 16px;
             border: 2px solid rgba(200, 180, 150, 0.4);
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             color: #5a5a5a;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -220,7 +206,7 @@
             transform: scale(1.02);
         }
 
-        /* 翻页提示/按钮 */
+        /* 底部提示 */
         .next-hint {
             position: absolute;
             bottom: 50px;
@@ -229,6 +215,7 @@
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
+            text-align: center;
         }
 
         .next-hint.show {
@@ -240,12 +227,9 @@
             font-size: 13px;
             color: rgba(100, 100, 100, 0.6);
             margin-bottom: 8px;
-            text-align: center;
         }
 
         .next-arrow {
-            display: flex;
-            justify-content: center;
             animation: arrowBounce 1s ease-in-out infinite;
         }
 
@@ -259,7 +243,6 @@
             50% { transform: translateX(8px); }
         }
 
-        /* 最后一题的查看结果按钮 */
         .view-result-btn {
             padding: 12px 30px;
             font-size: 16px;
@@ -287,6 +270,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.5s ease;
+            z-index: 20;
             overflow-y: auto;
         }
 
@@ -415,6 +399,11 @@
             background: rgba(230, 126, 34, 0.1);
         }
 
+        /* StPageFlip 样式覆盖 */
+        .stf__parent {
+            background: transparent !important;
+        }
+
         /* 移动端 */
         @media (max-width: 480px) {
             .title {
@@ -453,40 +442,9 @@
             </div>
         </div>
 
-        <!-- 答题页 - 翻页容器 -->
-        <div class="flip-container" id="flip-container">
-            <div class="flip-wrapper" id="flip-wrapper">
-                <!-- 当前页 -->
-                <div class="flip-page" id="current-page">
-                    <div class="question-content">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progress"></div>
-                        </div>
-                        <div class="question-number" id="q-num">第 1 题</div>
-                        <div class="question-text" id="q-text"></div>
-                        <div class="options" id="options"></div>
-                    </div>
-                    <div class="next-hint" id="next-hint">
-                        <div class="next-hint-text">已选，滑动翻页</div>
-                        <div class="next-arrow"><span>→</span></div>
-                    </div>
-                </div>
-                <!-- 下一页（预加载） -->
-                <div class="flip-page" id="next-page">
-                    <div class="question-content">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progress-next"></div>
-                        </div>
-                        <div class="question-number" id="q-num-next"></div>
-                        <div class="question-text" id="q-text-next"></div>
-                        <div class="options" id="options-next"></div>
-                    </div>
-                    <div class="next-hint" id="next-hint-next">
-                        <div class="next-hint-text">已选，滑动翻页</div>
-                        <div class="next-arrow"><span>→</span></div>
-                    </div>
-                </div>
-            </div>
+        <!-- 答题页 - StPageFlip容器 -->
+        <div id="question-container">
+            <!-- 动态生成题目页面 -->
         </div>
 
         <!-- 结果页 -->
@@ -507,6 +465,7 @@
         </div>
     </div>
 
+    <script src="page-flip.browser.js"></script>
     <script>
         // 粒子效果
         const canvas = document.getElementById('particles');
@@ -639,265 +598,190 @@
             }
         ];
 
-        let current = 0;
-        let selectedOption = -1;
         let answers = [];
-        let isAnimating = false;
-
-        // 翻页相关变量
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchCurrentX = 0;
-        let isDragging = false;
-        let dragStartTime = 0;
-        let currentOffset = 0; // 当前偏移量
-
-        const flipContainer = document.getElementById('flip-container');
-        const flipWrapper = document.getElementById('flip-wrapper');
+        let currentQuestion = 0;
+        let selectedOption = -1;
+        let pageFlip = null;
 
         function startTest() {
-            current = 0;
-            selectedOption = -1;
             answers = [];
-            currentOffset = 0;
-            
+            currentQuestion = 0;
+            selectedOption = -1;
+
             document.getElementById('home-page').classList.add('hidden');
-            flipContainer.classList.remove('hidden');
             
-            // 初始化位置
-            flipWrapper.classList.remove('animating');
-            flipWrapper.style.transform = 'translateX(0)';
+            // 动态生成题目页面
+            generateQuestionPages();
             
-            renderQuestionPage(0, 'current');
+            // 初始化StPageFlip
+            initPageFlip();
         }
 
-        function renderQuestionPage(questionIndex, pageType) {
-            const q = questions[questionIndex];
-            const isCurrent = pageType === 'current';
-            
-            const qNumEl = isCurrent ? document.getElementById('q-num') : document.getElementById('q-num-next');
-            const qTextEl = isCurrent ? document.getElementById('q-text') : document.getElementById('q-text-next');
-            const progressEl = isCurrent ? document.getElementById('progress') : document.getElementById('progress-next');
-            const optionsEl = isCurrent ? document.getElementById('options') : document.getElementById('options-next');
-            const hintEl = isCurrent ? document.getElementById('next-hint') : document.getElementById('next-hint-next');
-            
-            qNumEl.textContent = `第 ${questionIndex + 1} 题`;
-            qTextEl.textContent = q.text;
-            progressEl.style.width = `${((questionIndex + 1) / questions.length) * 100}%`;
-            
-            optionsEl.innerHTML = '';
-            
-            const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
-            
-            shuffledIndices.forEach((origIdx) => {
-                const btn = document.createElement('button');
-                btn.className = 'option';
-                if (origIdx === selectedOption && isCurrent) {
-                    btn.classList.add('selected');
-                }
-                btn.textContent = q.options[origIdx];
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    selectOption(origIdx, btn, isCurrent);
-                };
-                optionsEl.appendChild(btn);
+        function generateQuestionPages() {
+            const container = document.getElementById('question-container');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const page = document.createElement('div');
+                page.className = 'question-page';
+                page.setAttribute('data-density', 'hard');
+
+                const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+
+                page.innerHTML = `
+                    <div class="question-content">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${((index + 1) / questions.length) * 100}%"></div>
+                        </div>
+                        <div class="question-number">第 ${index + 1} 题</div>
+                        <div class="question-text">${q.text}</div>
+                        <div class="options" id="options-${index}">
+                            ${q.options.map((opt, i) => `
+                                <button class="option" data-index="${index}" data-option="${shuffledIndices[i]}">${opt}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="next-hint ${selectedOption >= 0 && index === currentQuestion ? 'show' : ''}" id="hint-${index}">
+                        <div class="next-hint-text">已选，滑动翻页</div>
+                        <div class="next-arrow"><span>→</span></div>
+                    </div>
+                `;
+
+                container.appendChild(page);
             });
-            
-            // 预加载下一页（如果不是最后一题）
-            if (questionIndex < questions.length - 1) {
-                preloadNextQuestion(questionIndex + 1);
-            }
-            
-            updateHint(questionIndex, hintEl);
-        }
 
-        function preloadNextQuestion(nextIndex) {
-            const q = questions[nextIndex];
-            document.getElementById('q-num-next').textContent = `第 ${nextIndex + 1} 题`;
-            document.getElementById('q-text-next').textContent = q.text;
-            document.getElementById('progress-next').style.width = `${((nextIndex + 1) / questions.length) * 100}%`;
-            
-            const optionsEl = document.getElementById('options-next');
-            optionsEl.innerHTML = '';
-            
-            const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
-            shuffledIndices.forEach((origIdx) => {
-                const btn = document.createElement('button');
-                btn.className = 'option';
-                btn.textContent = q.options[origIdx];
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    selectOption(origIdx, btn, false);
-                };
-                optionsEl.appendChild(btn);
+            // 最后一页特殊处理
+            const lastPage = container.lastElementChild;
+            const lastHint = lastPage.querySelector('.next-hint');
+            lastHint.innerHTML = '<button class="view-result-btn" onclick="goToResult()">查看结果</button>';
+
+            // 绑定选项点击事件
+            document.querySelectorAll('.option').forEach(btn => {
+                btn.addEventListener('click', handleOptionClick);
             });
-            
-            // 预加载更下一页
-            if (nextIndex < questions.length - 1) {
-                preloadNextQuestion(nextIndex + 1);
-            }
         }
 
-        function selectOption(index, btnElement, isCurrentPage) {
-            if (isAnimating) return;
-            
-            // 取消之前的选中
-            document.querySelectorAll('.option').forEach(opt => {
+        function handleOptionClick(e) {
+            const btn = e.target;
+            const questionIndex = parseInt(btn.dataset.index);
+            const optionIndex = parseInt(btn.dataset.option);
+
+            // 同一题内取消其他选中
+            document.querySelectorAll(`#options-${questionIndex} .option`).forEach(opt => {
                 opt.classList.remove('selected');
             });
-            
-            // 选中新的（toggle）
-            if (selectedOption === index) {
+
+            // toggle选中
+            if (selectedOption === optionIndex) {
                 selectedOption = -1;
             } else {
-                selectedOption = index;
-                btnElement.classList.add('selected');
+                selectedOption = optionIndex;
+                btn.classList.add('selected');
             }
-            
-            updateHint(current, document.getElementById('next-hint'));
-        }
 
-        function updateHint(questionIndex, hintEl) {
-            if (selectedOption < 0) {
-                hintEl.classList.remove('show');
-                return;
-            }
-            
-            if (questionIndex === questions.length - 1) {
-                // 最后一题，显示"查看结果"按钮
-                hintEl.innerHTML = '<button class="view-result-btn" onclick="goToResult()">查看结果</button>';
+            // 更新提示
+            const hint = document.getElementById(`hint-${questionIndex}`);
+            if (selectedOption >= 0 && questionIndex === currentQuestion) {
+                hint.classList.add('show');
             } else {
-                hintEl.innerHTML = `
-                    <div class="next-hint-text">已选，滑动翻页</div>
-                    <div class="next-arrow"><span>→</span></div>
-                `;
+                hint.classList.remove('show');
             }
-            
-            hintEl.classList.add('show');
         }
 
-        // ========== 真正的翻页滑动效果 ==========
-        flipContainer.addEventListener('touchstart', (e) => {
-            if (isAnimating) return;
-            if (selectedOption < 0) return; // 没选中不能翻页
-            if (current >= questions.length - 1) return; // 最后一题，禁止滑动
-            
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchCurrentX = touchStartX;
-            dragStartTime = Date.now();
-            isDragging = true;
-            
-            // 关闭过渡
-            flipWrapper.classList.remove('animating');
-            currentOffset = 0;
-        }, { passive: true });
+        function initPageFlip() {
+            const container = document.getElementById('question-container');
+            container.classList.add('active');
 
-        flipContainer.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            
-            const currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
-            const deltaX = currentX - touchStartX;
-            const deltaY = currentY - touchStartY;
-            
-            // 判断主要滑动方向
-            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 30) {
-                isDragging = false;
-                return;
+            if (pageFlip) {
+                pageFlip.destroy();
             }
-            
-            touchCurrentX = currentX;
-            
-            // 只允许左滑（下一页）
-            if (deltaX < 0) {
-                // 整页跟随手指移动
-                const offset = deltaX;
-                flipWrapper.style.transform = `translateX(${offset}px)`;
-            }
-        }, { passive: true });
 
-        flipContainer.addEventListener('touchend', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            
-            const deltaX = touchCurrentX - touchStartX;
-            const deltaTime = Date.now() - dragStartTime;
-            const screenWidth = window.innerWidth;
-            const threshold = screenWidth / 3; // 1/3屏幕宽度
-            
-            // 根据滑动距离和速度判断
-            if (deltaX < -threshold || (deltaX < -50 && deltaTime < 300)) {
-                // 翻到下一页
-                doFlip();
-            } else {
-                // 弹回来
-                flipBack();
-            }
-        });
+            pageFlip = new St.PageFlip(container, {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                size: "stretch",
+                flippingTime: 400,
+                swipeDistance: 50,
+                usePortrait: true,
+                disableFlipByClick: true, // 禁用点击翻页
+                showCover: true,
+                drawShadow: false
+            });
 
-        function doFlip() {
-            isAnimating = true;
-            currentOffset = -window.innerWidth;
-            
-            flipWrapper.classList.add('animating');
-            flipWrapper.style.transform = `translateX(-${window.innerWidth}px)`;
-            
-            setTimeout(() => {
-                // 保存答案
-                answers[current] = selectedOption;
+            // 加载页面
+            const pages = container.querySelectorAll('.question-page');
+            pageFlip.loadFromHTML(pages);
+
+            // 监听翻页事件
+            pageFlip.on('flip', (e) => {
+                currentQuestion = e.data;
                 
-                // 切换到下一页
-                current++;
-                selectedOption = -1;
-                currentOffset = 0;
+                // 保存当前页答案
+                if (selectedOption >= 0) {
+                    answers[currentQuestion] = selectedOption;
+                }
                 
-                // 重置wrapper到起始位置（但显示下一页）
-                flipWrapper.classList.remove('animating');
-                flipWrapper.style.transition = 'none';
-                flipWrapper.style.transform = 'translateX(0)';
+                // 重置选中状态
+                selectedOption = answers[currentQuestion] !== undefined ? answers[currentQuestion] : -1;
                 
-                // 交换页面内容
-                renderQuestionPage(current, 'current');
+                // 更新所有选项的选中状态
+                updateAllOptionsState();
                 
-                // 重置isAnimating
-                isAnimating = false;
-            }, 400);
+                // 显示/隐藏提示
+                updateHintVisibility();
+            });
+
+            // 监听翻页结束
+            pageFlip.on('changeOrientation', (e) => {
+                // 窗口大小改变时重新设置尺寸
+                pageFlip.setSize(window.innerWidth, window.innerHeight);
+            });
         }
 
-        function flipBack() {
-            isAnimating = true;
-            currentOffset = 0;
-            
-            flipWrapper.classList.add('animating');
-            flipWrapper.style.transform = 'translateX(0)';
-            
-            setTimeout(() => {
-                isAnimating = false;
-            }, 400);
+        function updateAllOptionsState() {
+            document.querySelectorAll('.option').forEach(btn => {
+                const qIndex = parseInt(btn.dataset.index);
+                const oIndex = parseInt(btn.dataset.option);
+                
+                if (qIndex === currentQuestion && oIndex === selectedOption) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        function updateHintVisibility() {
+            document.querySelectorAll('.next-hint').forEach((hint, index) => {
+                if (index === currentQuestion && selectedOption >= 0) {
+                    hint.classList.add('show');
+                } else {
+                    hint.classList.remove('show');
+                }
+            });
         }
 
         function goToResult() {
-            if (isAnimating) return;
-            isAnimating = true;
-            
-            answers[current] = selectedOption;
-            
-            // 完全隐藏答题页，显示结果页
-            flipContainer.classList.add('hidden');
-            
-            // 显示结果页
+            // 保存最后一题答案
+            if (selectedOption >= 0) {
+                answers[currentQuestion] = selectedOption;
+            }
+
+            const container = document.getElementById('question-container');
+            container.classList.remove('active');
+            container.style.display = 'none';
+
             const resultPage = document.getElementById('result-page');
             resultPage.classList.add('active');
-            
+
             const score = answers.reduce((a, b) => a + b, 0);
             const resultIndex = score % results.length;
             const result = results[resultIndex];
-            
+
             document.getElementById('result-type').textContent = result.emoji;
             document.getElementById('result-title').textContent = result.title;
             document.getElementById('result-desc').textContent = result.desc;
-            
+
             const tagsContainer = document.getElementById('result-tags');
             tagsContainer.innerHTML = '';
             result.tags.forEach((t, i) => {
@@ -907,36 +791,7 @@
                 tag.style.animationDelay = `${0.5 + i * 0.1}s`;
                 tagsContainer.appendChild(tag);
             });
-            
-            isAnimating = false;
         }
-
-        // 键盘支持（桌面端）
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'Enter') {
-                if (selectedOption >= 0 && !isAnimating) {
-                    if (current < questions.length - 1) {
-                        // 直接翻页
-                        currentOffset = -window.innerWidth;
-                        flipWrapper.classList.add('animating');
-                        flipWrapper.style.transform = `translateX(-${window.innerWidth}px)`;
-                        
-                        setTimeout(() => {
-                            answers[current] = selectedOption;
-                            current++;
-                            selectedOption = -1;
-                            currentOffset = 0;
-                            flipWrapper.classList.remove('animating');
-                            flipWrapper.style.transition = 'none';
-                            flipWrapper.style.transform = 'translateX(0)';
-                            renderQuestionPage(current, 'current');
-                        }, 400);
-                    } else {
-                        goToResult();
-                    }
-                }
-            }
-        });
 
         function shareResult() {
             const resultTitle = document.getElementById('result-title').textContent;
@@ -960,14 +815,28 @@ https://israel-rain.github.io/suanming/`;
         function retry() {
             const resultPage = document.getElementById('result-page');
             const homePage = document.getElementById('home-page');
-            
+            const container = document.getElementById('question-container');
+
             resultPage.classList.remove('active');
-            flipContainer.classList.add('hidden');
-            
+            container.classList.remove('active');
+            container.style.display = '';
+
+            if (pageFlip) {
+                pageFlip.destroy();
+                pageFlip = null;
+            }
+
             setTimeout(() => {
                 homePage.classList.remove('hidden');
             }, 300);
         }
+
+        // 窗口大小改变时更新尺寸
+        window.addEventListener('resize', () => {
+            if (pageFlip) {
+                pageFlip.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
     </script>
 </body>
 </html>
