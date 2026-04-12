@@ -668,7 +668,7 @@
             flipWrapper.classList.remove('animating');
             flipWrapper.style.transform = 'translateX(0)';
             
-            showQuestion(0);
+            renderQuestionPage(0, 'current');
         }
 
         function renderQuestionPage(questionIndex, pageType) {
@@ -736,10 +736,6 @@
             if (nextIndex < questions.length - 1) {
                 preloadNextQuestion(nextIndex + 1);
             }
-        }
-
-        function showQuestion(pageType) {
-            renderQuestionPage(current, pageType);
         }
 
         function selectOption(index, btnElement, isCurrentPage) {
@@ -862,7 +858,7 @@
                 flipWrapper.style.transform = 'translateX(0)';
                 
                 // 交换页面内容
-                showQuestion('current');
+                renderQuestionPage(current, 'current');
                 
                 // 重置isAnimating
                 isAnimating = false;
@@ -933,7 +929,7 @@
                             flipWrapper.classList.remove('animating');
                             flipWrapper.style.transition = 'none';
                             flipWrapper.style.transform = 'translateX(0)';
-                            showQuestion('current');
+                            renderQuestionPage(current, 'current');
                         }, 400);
                     } else {
                         goToResult();
@@ -966,7 +962,7 @@ https://israel-rain.github.io/suanming/`;
             const homePage = document.getElementById('home-page');
             
             resultPage.classList.remove('active');
-            flipContainer.classList.remove('hidden');
+            flipContainer.classList.add('hidden');
             
             setTimeout(() => {
                 homePage.classList.remove('hidden');
