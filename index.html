@@ -2,7 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>算命仙人 - 你是哪种摆烂仙人</title>
     <style>
         * {
@@ -17,9 +19,12 @@
         body {
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh; /* 适配移动端动态视口 */
             color: #4a4a4a;
             overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         /* 粒子画布 */
@@ -137,6 +142,31 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
+        }
+
+        /* StPageFlip 核心样式 */
+        .stf__parent {
+            width: 100% !important;
+            height: 100% !important;
+            background: transparent !important;
+        }
+
+        .stf__pages {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .stf__page {
+            width: 100% !important;
+            height: 100% !important;
+            background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%) !important;
+        }
+
+        /* 确保触摸事件可以穿透 */
+        .stf__left,
+        .stf__right,
+        .stf__shadow {
+            display: none !important;
         }
 
         .question-content {
@@ -701,11 +731,12 @@
                 height: window.innerHeight,
                 size: "stretch",
                 flippingTime: 400,
-                swipeDistance: 50,
+                swipeDistance: 30,
                 usePortrait: true,
-                disableFlipByClick: true, // 禁用点击翻页
+                useMouseSwipe: true,
+                disableFlipByClick: true,
                 showCover: true,
-                drawShadow: false
+                mobileScrollSupport: false
             });
 
             // 加载页面
@@ -729,12 +760,6 @@
                 
                 // 显示/隐藏提示
                 updateHintVisibility();
-            });
-
-            // 监听翻页结束
-            pageFlip.on('changeOrientation', (e) => {
-                // 窗口大小改变时重新设置尺寸
-                pageFlip.setSize(window.innerWidth, window.innerHeight);
             });
         }
 
@@ -834,8 +859,20 @@ https://israel-rain.github.io/suanming/`;
         // 窗口大小改变时更新尺寸
         window.addEventListener('resize', () => {
             if (pageFlip) {
-                pageFlip.setSize(window.innerWidth, window.innerHeight);
+                setTimeout(() => {
+                    pageFlip.setSize(window.innerWidth, window.innerHeight);
+                }, 100);
             }
+        });
+
+        // 屏幕方向改变时更新
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (pageFlip) {
+                    pageFlip.setSize(window.innerWidth, window.innerHeight);
+                }
+                resizeCanvas();
+            }, 200);
         });
     </script>
 </body>
