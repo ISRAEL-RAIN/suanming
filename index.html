@@ -10,6 +10,8 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -18,7 +20,6 @@
             min-height: 100vh;
             color: #4a4a4a;
             overflow: hidden;
-            touch-action: none;
         }
 
         /* 粒子画布 */
@@ -29,18 +30,19 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: 0;
         }
 
         /* 页面容器 */
-        .pages-container {
+        .app {
             position: relative;
             width: 100%;
             height: 100vh;
-            z-index: 2;
+            z-index: 1;
         }
 
-        .page {
+        /* 首页 */
+        #home-page {
             position: absolute;
             top: 0;
             left: 0;
@@ -51,24 +53,22 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            transition: all 0.5s ease;
+        }
+
+        #home-page.hidden {
             opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
         }
 
-        .page.active {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .page.exit-left {
-            transform: translateX(-30%);
-            opacity: 0;
-        }
-
-        /* 首页 */
         .home-content {
             text-align: center;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .emoji-icon {
@@ -114,9 +114,29 @@
         }
 
         /* 答题页 */
-        .question-page {
-            justify-content: flex-start;
-            padding-top: 80px;
+        #question-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transform: translateX(100%);
+            transition: none;
+        }
+
+        #question-page.active {
+            transform: translateX(0);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #question-page.exit {
+            transform: translateX(-100%);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .progress-bar {
@@ -150,6 +170,7 @@
             color: #3a3a3a;
             max-width: 500px;
             padding: 0 10px;
+            text-align: center;
         }
 
         /* 选项 */
@@ -169,7 +190,7 @@
             background: rgba(255, 255, 255, 0.8);
             color: #5a5a5a;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             text-align: left;
         }
 
@@ -180,51 +201,86 @@
             transform: scale(1.02);
         }
 
-        /* 滑动提示 */
-        .swipe-hint {
+        /* 翻页提示/按钮 */
+        .next-hint {
             position: absolute;
-            bottom: 40px;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.3s ease;
             pointer-events: none;
         }
 
-        .swipe-hint.show {
+        .next-hint.show {
             opacity: 1;
+            pointer-events: auto;
         }
 
-        .swipe-hint span {
+        .next-hint-text {
             font-size: 13px;
             color: rgba(100, 100, 100, 0.6);
+            margin-bottom: 8px;
+            text-align: center;
         }
 
-        .swipe-arrow {
-            font-size: 20px;
-            animation: swipeHint 1.5s ease-in-out infinite;
+        .next-arrow {
+            display: flex;
+            justify-content: center;
+            animation: arrowBounce 1s ease-in-out infinite;
         }
 
-        @keyframes swipeHint {
-            0%, 100% { transform: translateX(-10px); opacity: 0.5; }
-            50% { transform: translateX(10px); opacity: 1; }
+        .next-arrow span {
+            font-size: 24px;
+            color: #e67e22;
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(8px); }
+        }
+
+        /* 最后一题的查看结果按钮 */
+        .view-result-btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #e67e22;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         /* 结果页 */
-        .result-page {
-            justify-content: flex-start;
-            padding-top: 60px;
+        #result-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
             overflow-y: auto;
+        }
+
+        #result-page.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .result-content {
             text-align: center;
             width: 90%;
             max-width: 450px;
+            padding: 20px 0;
         }
 
         .result-badge {
@@ -340,30 +396,6 @@
             background: rgba(230, 126, 34, 0.1);
         }
 
-        /* 翻页效果 */
-        .page-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .question-card {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
-        }
-
-        .question-card.sliding {
-            transition: none;
-        }
-
         /* 移动端 */
         @media (max-width: 480px) {
             .title {
@@ -391,9 +423,9 @@
 <body>
     <canvas id="particles"></canvas>
 
-    <div class="pages-container">
+    <div class="app">
         <!-- 首页 -->
-        <div id="home-page" class="page active">
+        <div id="home-page">
             <div class="home-content">
                 <div class="emoji-icon">🔮</div>
                 <h1 class="title">算命仙人</h1>
@@ -403,21 +435,21 @@
         </div>
 
         <!-- 答题页 -->
-        <div id="question-page" class="page question-page">
+        <div id="question-page">
             <div class="progress-bar">
                 <div class="progress-fill" id="progress"></div>
             </div>
             <div class="question-number" id="q-num">第 1 题</div>
             <div class="question-text" id="q-text"></div>
             <div class="options" id="options"></div>
-            <div class="swipe-hint" id="swipe-hint">
-                <span>滑动继续</span>
-                <div class="swipe-arrow">→</div>
+            <div class="next-hint" id="next-hint">
+                <div class="next-hint-text">已选，滑动翻页</div>
+                <div class="next-arrow"><span>→</span></div>
             </div>
         </div>
 
         <!-- 结果页 -->
-        <div id="result-page" class="page result-page">
+        <div id="result-page">
             <div class="result-content">
                 <div class="result-badge">✨ 仙人掐指一算 ✨</div>
                 <div class="result-type" id="result-type"></div>
@@ -459,7 +491,7 @@
                 this.speedX = (Math.random() - 0.5) * 0.5;
                 this.speedY = (Math.random() - 0.5) * 0.5;
                 this.opacity = Math.random() * 0.5 + 0.1;
-                this.hue = Math.random() > 0.5 ? 30 : 40; // 橙黄色调
+                this.hue = Math.random() > 0.5 ? 30 : 40;
             }
 
             update() {
@@ -479,7 +511,6 @@
             }
         }
 
-        // 初始化粒子
         for (let i = 0; i < 30; i++) {
             particles.push(new Particle());
         }
@@ -570,9 +601,14 @@
         let current = 0;
         let selectedOption = -1;
         let answers = [];
-        let touchStartX = 0;
-        let touchEndX = 0;
         let isAnimating = false;
+
+        // 翻页相关变量
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchCurrentX = 0;
+        let isDragging = false;
+        let dragStartTime = 0;
 
         function startTest() {
             current = 0;
@@ -582,14 +618,12 @@
             const homePage = document.getElementById('home-page');
             const questionPage = document.getElementById('question-page');
             
-            homePage.classList.remove('active');
-            homePage.classList.add('exit-left');
+            homePage.classList.add('hidden');
+            questionPage.classList.add('active');
             
             setTimeout(() => {
-                questionPage.classList.add('active');
-                homePage.classList.remove('exit-left');
                 showQuestion();
-            }, 300);
+            }, 100);
         }
 
         function showQuestion() {
@@ -602,12 +636,9 @@
             container.innerHTML = '';
             selectedOption = answers[current] !== undefined ? answers[current] : -1;
             
-            // 随机打乱选项
-            const shuffledOptions = [...q.options];
-            const originalIndices = q.options.map((_, i) => i);
-            const shuffledIndices = originalIndices.sort(() => Math.random() - 0.5);
+            const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
             
-            shuffledIndices.forEach((origIdx, displayIdx) => {
+            shuffledIndices.forEach((origIdx) => {
                 const btn = document.createElement('button');
                 btn.className = 'option';
                 if (origIdx === selectedOption) {
@@ -618,30 +649,50 @@
                 container.appendChild(btn);
             });
             
-            // 显示滑动提示
-            const swipeHint = document.getElementById('swipe-hint');
-            if (selectedOption >= 0) {
-                swipeHint.classList.add('show');
-            } else {
-                swipeHint.classList.remove('show');
-            }
+            updateNextHint();
         }
 
         function selectOption(index, btnElement) {
             // 取消之前的选中
-            const allOptions = document.querySelectorAll('.option');
-            allOptions.forEach(opt => opt.classList.remove('selected'));
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
             
-            // 选中新的
-            selectedOption = index;
-            btnElement.classList.add('selected');
+            // 选中新的（toggle）
+            if (selectedOption === index) {
+                // 再次点击同一选项，取消选中
+                selectedOption = -1;
+            } else {
+                selectedOption = index;
+                btnElement.classList.add('selected');
+            }
             
-            // 显示滑动提示
-            document.getElementById('swipe-hint').classList.add('show');
+            updateNextHint();
+        }
+
+        function updateNextHint() {
+            const hint = document.getElementById('next-hint');
+            
+            if (selectedOption < 0) {
+                hint.classList.remove('show');
+                return;
+            }
+            
+            if (current === questions.length - 1) {
+                // 最后一题，显示"查看结果"按钮
+                hint.innerHTML = '<button class="view-result-btn" onclick="goToResult()">查看结果</button>';
+            } else {
+                hint.innerHTML = `
+                    <div class="next-hint-text">已选，滑动翻页</div>
+                    <div class="next-arrow"><span>→</span></div>
+                `;
+            }
+            
+            hint.classList.add('show');
         }
 
         function goToNext() {
-            if (selectedOption < 0) return; // 必须选择
+            if (selectedOption < 0) return;
             if (isAnimating) return;
             isAnimating = true;
             
@@ -649,41 +700,43 @@
             
             const questionPage = document.getElementById('question-page');
             
-            if (current < questions.length - 1) {
-                // 翻页动画
-                questionPage.style.transform = 'translateX(-30%)';
-                questionPage.style.opacity = '0';
+            // 翻页动画：滑出
+            questionPage.classList.add('exit');
+            
+            setTimeout(() => {
+                current++;
+                selectedOption = -1;
+                questionPage.classList.remove('exit');
+                questionPage.style.transition = 'none';
+                questionPage.style.transform = 'translateX(30%)';
                 
-                setTimeout(() => {
-                    current++;
-                    selectedOption = -1;
-                    questionPage.style.transition = 'none';
-                    questionPage.style.transform = 'translateX(30%)';
+                requestAnimationFrame(() => {
+                    questionPage.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    questionPage.style.transform = 'translateX(0)';
                     
-                    requestAnimationFrame(() => {
-                        questionPage.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                        questionPage.style.transform = 'translateX(0)';
-                        questionPage.style.opacity = '1';
-                        
-                        setTimeout(() => {
-                            showQuestion();
-                            isAnimating = false;
-                        }, 100);
-                    });
-                }, 300);
-            } else {
-                // 最后一题 -> 结果页
-                showResult();
-            }
+                    setTimeout(() => {
+                        showQuestion();
+                        isAnimating = false;
+                    }, 300);
+                });
+            }, 500);
         }
 
-        function showResult() {
+        function goToResult() {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            answers[current] = selectedOption;
+            
             const questionPage = document.getElementById('question-page');
             const resultPage = document.getElementById('result-page');
             
+            // 隐藏答题页，显示结果页
             questionPage.classList.remove('active');
+            questionPage.classList.add('exit');
             
             setTimeout(() => {
+                questionPage.classList.remove('exit');
                 resultPage.classList.add('active');
                 
                 const score = answers.reduce((a, b) => a + b, 0);
@@ -705,33 +758,82 @@
                 });
                 
                 isAnimating = false;
-            }, 300);
+            }, 500);
         }
 
-        // 触摸滑动处理
-        document.getElementById('question-page').addEventListener('touchstart', (e) => {
+        // ========== 真正的翻页滑动效果 ==========
+        const questionPage = document.getElementById('question-page');
+
+        questionPage.addEventListener('touchstart', (e) => {
+            if (isAnimating) return;
+            if (selectedOption < 0) return; // 没选中不能翻页
+            
             touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchCurrentX = touchStartX;
+            dragStartTime = Date.now();
+            isDragging = true;
+            
+            // 禁用transition
+            questionPage.style.transition = 'none';
         }, { passive: true });
 
-        document.getElementById('question-page').addEventListener('touchmove', (e) => {
-            touchEndX = e.touches[0].clientX;
+        questionPage.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const deltaX = currentX - touchStartX;
+            const deltaY = currentY - touchStartY;
+            
+            // 只响应水平滑动（如果垂直滑动更大，忽略）
+            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 20) {
+                isDragging = false;
+                return;
+            }
+            
+            touchCurrentX = currentX;
+            
+            // 只允许左滑（下一页）
+            if (deltaX < 0) {
+                // 带透视效果的位移
+                const offset = Math.max(deltaX, -window.innerWidth * 0.4);
+                questionPage.style.transform = `translateX(${offset}px)`;
+            }
         }, { passive: true });
 
-        document.getElementById('question-page').addEventListener('touchend', () => {
-            const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 80) { // 滑动阈值
-                if (diff > 0 && selectedOption >= 0) {
-                    // 左滑 -> 下一题
+        questionPage.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const deltaX = touchCurrentX - touchStartX;
+            const deltaTime = Date.now() - dragStartTime;
+            const velocity = Math.abs(deltaX) / deltaTime;
+            
+            // 判断是否翻页：左滑超过100px 或 速度快
+            if (deltaX < -100 || (deltaX < -50 && velocity > 0.5)) {
+                // 翻到下一页
+                if (current < questions.length - 1) {
                     goToNext();
+                } else {
+                    goToResult();
                 }
+            } else {
+                // 弹回来
+                questionPage.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                questionPage.style.transform = 'translateX(0)';
             }
         });
 
         // 键盘支持（桌面端）
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight' || e.key === 'Enter') {
-                if (selectedOption >= 0) {
-                    goToNext();
+                if (selectedOption >= 0 && !isAnimating) {
+                    if (current < questions.length - 1) {
+                        goToNext();
+                    } else {
+                        goToResult();
+                    }
                 }
             }
         });
@@ -741,7 +843,7 @@
             const text = `🔮 刚测了「算命仙人」，我是${resultTitle}！
 
 你也来试试？👇
-[链接]`;
+https://israel-rain.github.io/suanming/`;
             
             if (navigator.share) {
                 navigator.share({
@@ -762,7 +864,7 @@
             resultPage.classList.remove('active');
             
             setTimeout(() => {
-                homePage.classList.add('active');
+                homePage.classList.remove('hidden');
             }, 300);
         }
     </script>
