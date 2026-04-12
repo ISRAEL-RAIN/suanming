@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>算命仙人 - 你是哪种摆烂仙人</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
+            min-height: 100vh;
+            color: #4a4a4a;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* 粒子画布 */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 页面容器 */
+        .pages-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            z-index: 2;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .page.exit-left {
+            transform: translateX(-30%);
+            opacity: 0;
+        }
+
+        /* 首页 */
+        .home-content {
+            text-align: center;
+        }
+
+        .emoji-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        .title {
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #3a3a3a;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: rgba(100, 100, 100, 0.8);
+            margin-bottom: 50px;
+            letter-spacing: 1px;
+        }
+
+        .start-btn {
+            padding: 16px 50px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.3);
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 答题页 */
+        .question-page {
+            justify-content: flex-start;
+            padding-top: 80px;
+        }
+
+        .progress-bar {
+            width: 80%;
+            max-width: 400px;
+            height: 4px;
+            background: rgba(200, 180, 150, 0.3);
+            border-radius: 2px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e67e22, #f39c12);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .question-number {
+            font-size: 14px;
+            color: rgba(100, 100, 100, 0.6);
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 22px;
+            margin-bottom: 35px;
+            line-height: 1.5;
+            font-weight: 600;
+            color: #3a3a3a;
+            max-width: 500px;
+            padding: 0 10px;
+        }
+
+        /* 选项 */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .option {
+            padding: 18px 24px;
+            font-size: 16px;
+            border: 2px solid rgba(200, 180, 150, 0.4);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #5a5a5a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, rgba(230, 126, 34, 0.15), rgba(211, 84, 0, 0.1));
+            border-color: #e67e22;
+            color: #c05700;
+            transform: scale(1.02);
+        }
+
+        /* 滑动提示 */
+        .swipe-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .swipe-hint.show {
+            opacity: 1;
+        }
+
+        .swipe-hint span {
+            font-size: 13px;
+            color: rgba(100, 100, 100, 0.6);
+        }
+
+        .swipe-arrow {
+            font-size: 20px;
+            animation: swipeHint 1.5s ease-in-out infinite;
+        }
+
+        @keyframes swipeHint {
+            0%, 100% { transform: translateX(-10px); opacity: 0.5; }
+            50% { transform: translateX(10px); opacity: 1; }
+        }
+
+        /* 结果页 */
+        .result-page {
+            justify-content: flex-start;
+            padding-top: 60px;
+            overflow-y: auto;
+        }
+
+        .result-content {
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(230, 126, 34, 0.15);
+            border-radius: 20px;
+            font-size: 14px;
+            color: #c05700;
+            margin-bottom: 20px;
+        }
+
+        .result-type {
+            font-size: 60px;
+            margin-bottom: 10px;
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 25px;
+            color: #3a3a3a;
+            animation: slideUp 0.5s ease 0.2s both;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(200, 180, 150, 0.3);
+            text-align: left;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            animation: slideUp 0.5s ease 0.4s both;
+        }
+
+        .result-desc {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #5a5a5a;
+        }
+
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .result-tag {
+            padding: 8px 16px;
+            background: rgba(230, 126, 34, 0.1);
+            border-radius: 20px;
+            font-size: 14px;
+            color: #c05700;
+            animation: tagIn 0.4s ease both;
+        }
+
+        @keyframes tagIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            animation: slideUp 0.5s ease 0.6s both;
+        }
+
+        .share-btn {
+            padding: 16px;
+            font-size: 17px;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+            background: #25D366;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn:active {
+            transform: scale(0.98);
+        }
+
+        .retry-btn {
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid rgba(200, 180, 150, 0.5);
+            border-radius: 16px;
+            background: transparent;
+            color: #5a5a5a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .retry-btn:active {
+            background: rgba(230, 126, 34, 0.1);
+        }
+
+        /* 翻页效果 */
+        .page-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .question-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+        }
+
+        .question-card.sliding {
+            transition: none;
+        }
+
+        /* 移动端 */
+        @media (max-width: 480px) {
+            .title {
+                font-size: 34px;
+            }
+
+            .question-text {
+                font-size: 20px;
+            }
+
+            .result-type {
+                font-size: 50px;
+            }
+
+            .result-title {
+                font-size: 24px;
+            }
+
+            .emoji-icon {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+
+    <div class="pages-container">
+        <!-- 首页 -->
+        <div id="home-page" class="page active">
+            <div class="home-content">
+                <div class="emoji-icon">🔮</div>
+                <h1 class="title">算命仙人</h1>
+                <p class="subtitle">你是哪种摆烂仙人？</p>
+                <button class="start-btn" onclick="startTest()">开始测试</button>
+            </div>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="question-page" class="page question-page">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            <div class="question-number" id="q-num">第 1 题</div>
+            <div class="question-text" id="q-text"></div>
+            <div class="options" id="options"></div>
+            <div class="swipe-hint" id="swipe-hint">
+                <span>滑动继续</span>
+                <div class="swipe-arrow">→</div>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="result-page" class="page result-page">
+            <div class="result-content">
+                <div class="result-badge">✨ 仙人掐指一算 ✨</div>
+                <div class="result-type" id="result-type"></div>
+                <h2 class="result-title" id="result-title"></h2>
+                <div class="result-card">
+                    <p class="result-desc" id="result-desc"></p>
+                    <div class="result-tags" id="result-tags"></div>
+                </div>
+                <div class="btn-group">
+                    <button class="share-btn" onclick="shareResult()">📱 发给朋友比惨</button>
+                    <button class="retry-btn" onclick="retry()">再摆一次烂</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 粒子效果
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.hue = Math.random() > 0.5 ? 30 : 40; // 橙黄色调
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 80%, 60%, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        // 初始化粒子
+        for (let i = 0; i < 30; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // 题目数据
+        const questions = [
+            {
+                text: "周六早上10点，你的自然醒时间是？",
+                options: ["已经醒了，在焦虑下周工作", "睡到下午才是对周末的尊重", "8点就醒，卷王体质", "管他几点，饿醒为止"]
+            },
+            {
+                text: "朋友圈看到同学又晒升职，你第一反应是？",
+                options: ["点个赞，心里MMP", "划走，假装没看到", "评论区：恭喜！", "开始刷招聘软件"]
+            },
+            {
+                text: "领导晚上9点发消息，你会？",
+                options: ["已读不回，明天再说", "秒回：好的收到！", "回：在忙，晚点联系", "直接装睡"]
+            },
+            {
+                text: "你买过最后悔的东西是？",
+                options: ["健身卡，一次没去过", "囤的课，听了三节", "那件等瘦了再穿的衣服", "没后悔过，我很理智"]
+            },
+            {
+                text: "朋友约你出去玩，你的真实想法是？",
+                options: ["在家躺着不香吗", "去！必须去！难得出门", "看心情，看天气", "去可以，但你得请客"]
+            },
+            {
+                text: "半夜睡不着，你通常在想什么？",
+                options: ["人生的意义是什么", "明天又要上班...", "明天吃啥", "想不通的事太多了"]
+            }
+        ];
+
+        const results = [
+            {
+                type: "摆烂仙人",
+                emoji: "🛋️",
+                title: "你是「摆烂仙人」",
+                desc: "躺平是你的信仰，摆烂是你的日常。你的人生格言是：能躺着绝不坐着，能摆烂绝不挣扎。你不是不努力，你只是懂得什么时候该休息。仙人曰：你已得躺平真传，此乃大智慧也。",
+                tags: ["躺平大师", "精神离职", "周末战神"]
+            },
+            {
+                type: "卷王仙人",
+                emoji: "💪",
+                title: "你是「卷王仙人」",
+                desc: "嘴上说着摆烂，身体却很诚实。你是那种躺在床上刷招聘信息、焦虑到睡不着、休息日比上班还累的类型。仙人曰：你卷的不是工作，是那颗不安的心。",
+                tags: ["间歇性踌躇", "持续性焦虑", "隐形卷王"]
+            },
+            {
+                type: "精神离职仙人",
+                emoji: "😶",
+                title: "你是「精神离职仙人」",
+                desc: "人在工位，魂已下班。你的身体在开会，灵魂在神游。工作是给老板做的，但脑子是自己的。仙人曰：精神离职是当代打工人的最优解。",
+                tags: ["身体在场", "灵魂出窍", "带薪摸鱼"]
+            },
+            {
+                type: "社恐仙人",
+                emoji: "🙈",
+                title: "你是「社恐仙人」",
+                desc: "你的社交能量是有限的，用完就得回家充电。朋友聚会能不去就不去，群消息能不看就不看，发朋友圈还得想半天文案。仙人曰：独处是你的充电方式，没毛病。",
+                tags: ["已读不回", "在线隐身", "独处充电"]
+            },
+            {
+                type: "嘴强王者",
+                emoji: "🗣️",
+                title: "你是「嘴强王者」",
+                desc: "理论大师，实操青铜。你能写出一万字躺平指南，却还是在焦虑中卷生卷死。你是那种嘴上毒舌一切，内心戏比谁都多的人。仙人曰：想太多，做太少，是你最大的敌人。",
+                tags: ["想法巨人", "行动矮子", "内心戏王"]
+            },
+            {
+                type: "通透仙人",
+                emoji: "🧘",
+                title: "你是「通透仙人」",
+                desc: "你已经看透了一切，也接受了一切。你不卷不摆，不焦虑不佛系，主打一个顺其自然。仙人曰：你已修炼到无欲无求的境界，吾辈楷模。",
+                tags: ["看透一切", "顺其自然", "人间清醒"]
+            }
+        ];
+
+        let current = 0;
+        let selectedOption = -1;
+        let answers = [];
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let isAnimating = false;
+
+        function startTest() {
+            current = 0;
+            selectedOption = -1;
+            answers = [];
+            
+            const homePage = document.getElementById('home-page');
+            const questionPage = document.getElementById('question-page');
+            
+            homePage.classList.remove('active');
+            homePage.classList.add('exit-left');
+            
+            setTimeout(() => {
+                questionPage.classList.add('active');
+                homePage.classList.remove('exit-left');
+                showQuestion();
+            }, 300);
+        }
+
+        function showQuestion() {
+            const q = questions[current];
+            document.getElementById('q-num').textContent = `第 ${current + 1} 题`;
+            document.getElementById('q-text').textContent = q.text;
+            document.getElementById('progress').style.width = `${((current + 1) / questions.length) * 100}%`;
+            
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            selectedOption = answers[current] !== undefined ? answers[current] : -1;
+            
+            // 随机打乱选项
+            const shuffledOptions = [...q.options];
+            const originalIndices = q.options.map((_, i) => i);
+            const shuffledIndices = originalIndices.sort(() => Math.random() - 0.5);
+            
+            shuffledIndices.forEach((origIdx, displayIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                if (origIdx === selectedOption) {
+                    btn.classList.add('selected');
+                }
+                btn.textContent = q.options[origIdx];
+                btn.onclick = () => selectOption(origIdx, btn);
+                container.appendChild(btn);
+            });
+            
+            // 显示滑动提示
+            const swipeHint = document.getElementById('swipe-hint');
+            if (selectedOption >= 0) {
+                swipeHint.classList.add('show');
+            } else {
+                swipeHint.classList.remove('show');
+            }
+        }
+
+        function selectOption(index, btnElement) {
+            // 取消之前的选中
+            const allOptions = document.querySelectorAll('.option');
+            allOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // 选中新的
+            selectedOption = index;
+            btnElement.classList.add('selected');
+            
+            // 显示滑动提示
+            document.getElementById('swipe-hint').classList.add('show');
+        }
+
+        function goToNext() {
+            if (selectedOption < 0) return; // 必须选择
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            answers[current] = selectedOption;
+            
+            const questionPage = document.getElementById('question-page');
+            
+            if (current < questions.length - 1) {
+                // 翻页动画
+                questionPage.style.transform = 'translateX(-30%)';
+                questionPage.style.opacity = '0';
+                
+                setTimeout(() => {
+                    current++;
+                    selectedOption = -1;
+                    questionPage.style.transition = 'none';
+                    questionPage.style.transform = 'translateX(30%)';
+                    
+                    requestAnimationFrame(() => {
+                        questionPage.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                        questionPage.style.transform = 'translateX(0)';
+                        questionPage.style.opacity = '1';
+                        
+                        setTimeout(() => {
+                            showQuestion();
+                            isAnimating = false;
+                        }, 100);
+                    });
+                }, 300);
+            } else {
+                // 最后一题 -> 结果页
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const questionPage = document.getElementById('question-page');
+            const resultPage = document.getElementById('result-page');
+            
+            questionPage.classList.remove('active');
+            
+            setTimeout(() => {
+                resultPage.classList.add('active');
+                
+                const score = answers.reduce((a, b) => a + b, 0);
+                const resultIndex = score % results.length;
+                const result = results[resultIndex];
+                
+                document.getElementById('result-type').textContent = result.emoji;
+                document.getElementById('result-title').textContent = result.title;
+                document.getElementById('result-desc').textContent = result.desc;
+                
+                const tagsContainer = document.getElementById('result-tags');
+                tagsContainer.innerHTML = '';
+                result.tags.forEach((t, i) => {
+                    const tag = document.createElement('span');
+                    tag.className = 'result-tag';
+                    tag.textContent = '# ' + t;
+                    tag.style.animationDelay = `${0.5 + i * 0.1}s`;
+                    tagsContainer.appendChild(tag);
+                });
+                
+                isAnimating = false;
+            }, 300);
+        }
+
+        // 触摸滑动处理
+        document.getElementById('question-page').addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+
+        document.getElementById('question-page').addEventListener('touchmove', (e) => {
+            touchEndX = e.touches[0].clientX;
+        }, { passive: true });
+
+        document.getElementById('question-page').addEventListener('touchend', () => {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 80) { // 滑动阈值
+                if (diff > 0 && selectedOption >= 0) {
+                    // 左滑 -> 下一题
+                    goToNext();
+                }
+            }
+        });
+
+        // 键盘支持（桌面端）
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                if (selectedOption >= 0) {
+                    goToNext();
+                }
+            }
+        });
+
+        function shareResult() {
+            const resultTitle = document.getElementById('result-title').textContent;
+            const text = `🔮 刚测了「算命仙人」，我是${resultTitle}！
+
+你也来试试？👇
+[链接]`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '算命仙人',
+                    text: text
+                });
+            } else {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('已复制到剪贴板！快去朋友圈发吧~');
+                });
+            }
+        }
+
+        function retry() {
+            const resultPage = document.getElementById('result-page');
+            const homePage = document.getElementById('home-page');
+            
+            resultPage.classList.remove('active');
+            
+            setTimeout(() => {
+                homePage.classList.add('active');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
