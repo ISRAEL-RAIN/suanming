@@ -113,35 +113,49 @@
             transform: scale(0.95);
         }
 
-        /* 答题页 */
-        #question-page {
+        /* ========== 答题页翻页容器 ========== */
+        .flip-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .flip-wrapper {
+            display: flex;
+            width: 200%;
+            height: 100%;
+            transition: transform 0s; /* 拖动时无过渡 */
+        }
+
+        .flip-wrapper.animating {
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .flip-page {
+            width: 50%;
             height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            transform: translateX(100%);
-            transition: none;
+            position: relative;
         }
 
-        #question-page.active {
-            transform: translateX(0);
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #question-page.exit {
-            transform: translateX(-100%);
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        /* 答题内容 */
+        .question-content {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .progress-bar {
-            width: 80%;
-            max-width: 400px;
+            width: 100%;
             height: 4px;
             background: rgba(200, 180, 150, 0.3);
             border-radius: 2px;
@@ -168,8 +182,6 @@
             line-height: 1.5;
             font-weight: 600;
             color: #3a3a3a;
-            max-width: 500px;
-            padding: 0 10px;
             text-align: center;
         }
 
@@ -178,7 +190,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            width: 90%;
+            width: 100%;
             max-width: 450px;
         }
 
@@ -434,17 +446,39 @@
             </div>
         </div>
 
-        <!-- 答题页 -->
-        <div id="question-page">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress"></div>
-            </div>
-            <div class="question-number" id="q-num">第 1 题</div>
-            <div class="question-text" id="q-text"></div>
-            <div class="options" id="options"></div>
-            <div class="next-hint" id="next-hint">
-                <div class="next-hint-text">已选，滑动翻页</div>
-                <div class="next-arrow"><span>→</span></div>
+        <!-- 答题页 - 翻页容器 -->
+        <div class="flip-container" id="flip-container">
+            <div class="flip-wrapper" id="flip-wrapper">
+                <!-- 当前页 -->
+                <div class="flip-page" id="current-page">
+                    <div class="question-content">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress"></div>
+                        </div>
+                        <div class="question-number" id="q-num">第 1 题</div>
+                        <div class="question-text" id="q-text"></div>
+                        <div class="options" id="options"></div>
+                    </div>
+                    <div class="next-hint" id="next-hint">
+                        <div class="next-hint-text">已选，滑动翻页</div>
+                        <div class="next-arrow"><span>→</span></div>
+                    </div>
+                </div>
+                <!-- 下一页（预加载） -->
+                <div class="flip-page" id="next-page">
+                    <div class="question-content">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-next"></div>
+                        </div>
+                        <div class="question-number" id="q-num-next"></div>
+                        <div class="question-text" id="q-text-next"></div>
+                        <div class="options" id="options-next"></div>
+                    </div>
+                    <div class="next-hint" id="next-hint-next">
+                        <div class="next-hint-text">已选，滑动翻页</div>
+                        <div class="next-arrow"><span>→</span></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -609,50 +643,101 @@
         let touchCurrentX = 0;
         let isDragging = false;
         let dragStartTime = 0;
+        let currentOffset = 0; // 当前偏移量
+
+        const flipContainer = document.getElementById('flip-container');
+        const flipWrapper = document.getElementById('flip-wrapper');
 
         function startTest() {
             current = 0;
             selectedOption = -1;
             answers = [];
+            currentOffset = 0;
             
-            const homePage = document.getElementById('home-page');
-            const questionPage = document.getElementById('question-page');
+            document.getElementById('home-page').classList.add('hidden');
+            flipContainer.style.display = 'block';
             
-            homePage.classList.add('hidden');
-            questionPage.classList.add('active');
+            // 初始化位置
+            flipWrapper.classList.remove('animating');
+            flipWrapper.style.transform = 'translateX(0)';
             
-            setTimeout(() => {
-                showQuestion();
-            }, 100);
+            showQuestion(0);
         }
 
-        function showQuestion() {
-            const q = questions[current];
-            document.getElementById('q-num').textContent = `第 ${current + 1} 题`;
-            document.getElementById('q-text').textContent = q.text;
-            document.getElementById('progress').style.width = `${((current + 1) / questions.length) * 100}%`;
+        function renderQuestionPage(questionIndex, pageType) {
+            const q = questions[questionIndex];
+            const isCurrent = pageType === 'current';
             
-            const container = document.getElementById('options');
-            container.innerHTML = '';
-            selectedOption = answers[current] !== undefined ? answers[current] : -1;
+            const qNumEl = isCurrent ? document.getElementById('q-num') : document.getElementById('q-num-next');
+            const qTextEl = isCurrent ? document.getElementById('q-text') : document.getElementById('q-text-next');
+            const progressEl = isCurrent ? document.getElementById('progress') : document.getElementById('progress-next');
+            const optionsEl = isCurrent ? document.getElementById('options') : document.getElementById('options-next');
+            const hintEl = isCurrent ? document.getElementById('next-hint') : document.getElementById('next-hint-next');
+            
+            qNumEl.textContent = `第 ${questionIndex + 1} 题`;
+            qTextEl.textContent = q.text;
+            progressEl.style.width = `${((questionIndex + 1) / questions.length) * 100}%`;
+            
+            optionsEl.innerHTML = '';
             
             const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
             
             shuffledIndices.forEach((origIdx) => {
                 const btn = document.createElement('button');
                 btn.className = 'option';
-                if (origIdx === selectedOption) {
+                if (origIdx === selectedOption && isCurrent) {
                     btn.classList.add('selected');
                 }
                 btn.textContent = q.options[origIdx];
-                btn.onclick = () => selectOption(origIdx, btn);
-                container.appendChild(btn);
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    selectOption(origIdx, btn, isCurrent);
+                };
+                optionsEl.appendChild(btn);
             });
             
-            updateNextHint();
+            // 预加载下一页（如果不是最后一题）
+            if (questionIndex < questions.length - 1) {
+                preloadNextQuestion(questionIndex + 1);
+            }
+            
+            updateHint(questionIndex, hintEl);
         }
 
-        function selectOption(index, btnElement) {
+        function preloadNextQuestion(nextIndex) {
+            const q = questions[nextIndex];
+            document.getElementById('q-num-next').textContent = `第 ${nextIndex + 1} 题`;
+            document.getElementById('q-text-next').textContent = q.text;
+            document.getElementById('progress-next').style.width = `${((nextIndex + 1) / questions.length) * 100}%`;
+            
+            const optionsEl = document.getElementById('options-next');
+            optionsEl.innerHTML = '';
+            
+            const shuffledIndices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+            shuffledIndices.forEach((origIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.textContent = q.options[origIdx];
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    selectOption(origIdx, btn, false);
+                };
+                optionsEl.appendChild(btn);
+            });
+            
+            // 预加载更下一页
+            if (nextIndex < questions.length - 1) {
+                preloadNextQuestion(nextIndex + 1);
+            }
+        }
+
+        function showQuestion(pageType) {
+            renderQuestionPage(current, pageType);
+        }
+
+        function selectOption(index, btnElement, isCurrentPage) {
+            if (isAnimating) return;
+            
             // 取消之前的选中
             document.querySelectorAll('.option').forEach(opt => {
                 opt.classList.remove('selected');
@@ -660,66 +745,133 @@
             
             // 选中新的（toggle）
             if (selectedOption === index) {
-                // 再次点击同一选项，取消选中
                 selectedOption = -1;
             } else {
                 selectedOption = index;
                 btnElement.classList.add('selected');
             }
             
-            updateNextHint();
+            updateHint(current, document.getElementById('next-hint'));
         }
 
-        function updateNextHint() {
-            const hint = document.getElementById('next-hint');
-            
+        function updateHint(questionIndex, hintEl) {
             if (selectedOption < 0) {
-                hint.classList.remove('show');
+                hintEl.classList.remove('show');
                 return;
             }
             
-            if (current === questions.length - 1) {
+            if (questionIndex === questions.length - 1) {
                 // 最后一题，显示"查看结果"按钮
-                hint.innerHTML = '<button class="view-result-btn" onclick="goToResult()">查看结果</button>';
+                hintEl.innerHTML = '<button class="view-result-btn" onclick="goToResult()">查看结果</button>';
             } else {
-                hint.innerHTML = `
+                hintEl.innerHTML = `
                     <div class="next-hint-text">已选，滑动翻页</div>
                     <div class="next-arrow"><span>→</span></div>
                 `;
             }
             
-            hint.classList.add('show');
+            hintEl.classList.add('show');
         }
 
-        function goToNext() {
-            if (selectedOption < 0) return;
+        // ========== 真正的翻页滑动效果 ==========
+        flipContainer.addEventListener('touchstart', (e) => {
             if (isAnimating) return;
+            if (selectedOption < 0) return; // 没选中不能翻页
+            if (current >= questions.length - 1) return; // 最后一题
+            
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchCurrentX = touchStartX;
+            dragStartTime = Date.now();
+            isDragging = true;
+            
+            // 关闭过渡
+            flipWrapper.classList.remove('animating');
+            currentOffset = 0;
+        }, { passive: true });
+
+        flipContainer.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const deltaX = currentX - touchStartX;
+            const deltaY = currentY - touchStartY;
+            
+            // 判断主要滑动方向
+            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 30) {
+                isDragging = false;
+                return;
+            }
+            
+            touchCurrentX = currentX;
+            
+            // 只允许左滑（下一页）
+            if (deltaX < 0) {
+                // 整页跟随手指移动
+                const offset = deltaX;
+                flipWrapper.style.transform = `translateX(${offset}px)`;
+            }
+        }, { passive: true });
+
+        flipContainer.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const deltaX = touchCurrentX - touchStartX;
+            const deltaTime = Date.now() - dragStartTime;
+            const screenWidth = window.innerWidth;
+            const threshold = screenWidth / 3; // 1/3屏幕宽度
+            
+            // 根据滑动距离和速度判断
+            if (deltaX < -threshold || (deltaX < -50 && deltaTime < 300)) {
+                // 翻到下一页
+                doFlip();
+            } else {
+                // 弹回来
+                flipBack();
+            }
+        });
+
+        function doFlip() {
             isAnimating = true;
+            currentOffset = -window.innerWidth;
             
-            answers[current] = selectedOption;
-            
-            const questionPage = document.getElementById('question-page');
-            
-            // 翻页动画：滑出
-            questionPage.classList.add('exit');
+            flipWrapper.classList.add('animating');
+            flipWrapper.style.transform = `translateX(-${window.innerWidth}px)`;
             
             setTimeout(() => {
+                // 保存答案
+                answers[current] = selectedOption;
+                
+                // 切换到下一页
                 current++;
                 selectedOption = -1;
-                questionPage.classList.remove('exit');
-                questionPage.style.transition = 'none';
-                questionPage.style.transform = 'translateX(30%)';
+                currentOffset = 0;
                 
-                requestAnimationFrame(() => {
-                    questionPage.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                    questionPage.style.transform = 'translateX(0)';
-                    
-                    setTimeout(() => {
-                        showQuestion();
-                        isAnimating = false;
-                    }, 300);
-                });
-            }, 500);
+                // 重置wrapper到起始位置（但显示下一页）
+                flipWrapper.classList.remove('animating');
+                flipWrapper.style.transition = 'none';
+                flipWrapper.style.transform = 'translateX(0)';
+                
+                // 交换页面内容
+                showQuestion('current');
+                
+                // 重置isAnimating
+                isAnimating = false;
+            }, 400);
+        }
+
+        function flipBack() {
+            isAnimating = true;
+            currentOffset = 0;
+            
+            flipWrapper.classList.add('animating');
+            flipWrapper.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                isAnimating = false;
+            }, 400);
         }
 
         function goToResult() {
@@ -728,15 +880,17 @@
             
             answers[current] = selectedOption;
             
-            const questionPage = document.getElementById('question-page');
-            const resultPage = document.getElementById('result-page');
-            
-            // 隐藏答题页，显示结果页
-            questionPage.classList.remove('active');
-            questionPage.classList.add('exit');
+            // 淡出答题页
+            flipContainer.style.transition = 'opacity 0.4s ease';
+            flipContainer.style.opacity = '0';
             
             setTimeout(() => {
-                questionPage.classList.remove('exit');
+                flipContainer.style.display = 'none';
+                flipContainer.style.opacity = '1';
+                flipContainer.style.transition = '';
+                
+                // 显示结果页
+                const resultPage = document.getElementById('result-page');
                 resultPage.classList.add('active');
                 
                 const score = answers.reduce((a, b) => a + b, 0);
@@ -758,79 +912,29 @@
                 });
                 
                 isAnimating = false;
-            }, 500);
+            }, 400);
         }
-
-        // ========== 真正的翻页滑动效果 ==========
-        const questionPage = document.getElementById('question-page');
-
-        questionPage.addEventListener('touchstart', (e) => {
-            if (isAnimating) return;
-            if (selectedOption < 0) return; // 没选中不能翻页
-            
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchCurrentX = touchStartX;
-            dragStartTime = Date.now();
-            isDragging = true;
-            
-            // 禁用transition
-            questionPage.style.transition = 'none';
-        }, { passive: true });
-
-        questionPage.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            
-            const currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
-            const deltaX = currentX - touchStartX;
-            const deltaY = currentY - touchStartY;
-            
-            // 只响应水平滑动（如果垂直滑动更大，忽略）
-            if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 20) {
-                isDragging = false;
-                return;
-            }
-            
-            touchCurrentX = currentX;
-            
-            // 只允许左滑（下一页）
-            if (deltaX < 0) {
-                // 带透视效果的位移
-                const offset = Math.max(deltaX, -window.innerWidth * 0.4);
-                questionPage.style.transform = `translateX(${offset}px)`;
-            }
-        }, { passive: true });
-
-        questionPage.addEventListener('touchend', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            
-            const deltaX = touchCurrentX - touchStartX;
-            const deltaTime = Date.now() - dragStartTime;
-            const velocity = Math.abs(deltaX) / deltaTime;
-            
-            // 判断是否翻页：左滑超过100px 或 速度快
-            if (deltaX < -100 || (deltaX < -50 && velocity > 0.5)) {
-                // 翻到下一页
-                if (current < questions.length - 1) {
-                    goToNext();
-                } else {
-                    goToResult();
-                }
-            } else {
-                // 弹回来
-                questionPage.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                questionPage.style.transform = 'translateX(0)';
-            }
-        });
 
         // 键盘支持（桌面端）
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight' || e.key === 'Enter') {
                 if (selectedOption >= 0 && !isAnimating) {
                     if (current < questions.length - 1) {
-                        goToNext();
+                        // 直接翻页
+                        currentOffset = -window.innerWidth;
+                        flipWrapper.classList.add('animating');
+                        flipWrapper.style.transform = `translateX(-${window.innerWidth}px)`;
+                        
+                        setTimeout(() => {
+                            answers[current] = selectedOption;
+                            current++;
+                            selectedOption = -1;
+                            currentOffset = 0;
+                            flipWrapper.classList.remove('animating');
+                            flipWrapper.style.transition = 'none';
+                            flipWrapper.style.transform = 'translateX(0)';
+                            showQuestion('current');
+                        }, 400);
                     } else {
                         goToResult();
                     }
