@@ -54,11 +54,13 @@
             justify-content: center;
             padding: 20px;
             transition: all 0.5s ease;
+            z-index: 10;
         }
 
         #home-page.hidden {
             opacity: 0;
             pointer-events: none;
+            transform: scale(1.1);
         }
 
         .home-content {
@@ -121,6 +123,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            z-index: 5;
+        }
+
+        .flip-container.hidden {
+            display: none;
         }
 
         .flip-wrapper {
@@ -655,7 +662,7 @@
             currentOffset = 0;
             
             document.getElementById('home-page').classList.add('hidden');
-            flipContainer.style.display = 'block';
+            flipContainer.classList.remove('hidden');
             
             // 初始化位置
             flipWrapper.classList.remove('animating');
@@ -777,7 +784,7 @@
         flipContainer.addEventListener('touchstart', (e) => {
             if (isAnimating) return;
             if (selectedOption < 0) return; // 没选中不能翻页
-            if (current >= questions.length - 1) return; // 最后一题
+            if (current >= questions.length - 1) return; // 最后一题，禁止滑动
             
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -880,39 +887,32 @@
             
             answers[current] = selectedOption;
             
-            // 淡出答题页
-            flipContainer.style.transition = 'opacity 0.4s ease';
-            flipContainer.style.opacity = '0';
+            // 完全隐藏答题页，显示结果页
+            flipContainer.classList.add('hidden');
             
-            setTimeout(() => {
-                flipContainer.style.display = 'none';
-                flipContainer.style.opacity = '1';
-                flipContainer.style.transition = '';
-                
-                // 显示结果页
-                const resultPage = document.getElementById('result-page');
-                resultPage.classList.add('active');
-                
-                const score = answers.reduce((a, b) => a + b, 0);
-                const resultIndex = score % results.length;
-                const result = results[resultIndex];
-                
-                document.getElementById('result-type').textContent = result.emoji;
-                document.getElementById('result-title').textContent = result.title;
-                document.getElementById('result-desc').textContent = result.desc;
-                
-                const tagsContainer = document.getElementById('result-tags');
-                tagsContainer.innerHTML = '';
-                result.tags.forEach((t, i) => {
-                    const tag = document.createElement('span');
-                    tag.className = 'result-tag';
-                    tag.textContent = '# ' + t;
-                    tag.style.animationDelay = `${0.5 + i * 0.1}s`;
-                    tagsContainer.appendChild(tag);
-                });
-                
-                isAnimating = false;
-            }, 400);
+            // 显示结果页
+            const resultPage = document.getElementById('result-page');
+            resultPage.classList.add('active');
+            
+            const score = answers.reduce((a, b) => a + b, 0);
+            const resultIndex = score % results.length;
+            const result = results[resultIndex];
+            
+            document.getElementById('result-type').textContent = result.emoji;
+            document.getElementById('result-title').textContent = result.title;
+            document.getElementById('result-desc').textContent = result.desc;
+            
+            const tagsContainer = document.getElementById('result-tags');
+            tagsContainer.innerHTML = '';
+            result.tags.forEach((t, i) => {
+                const tag = document.createElement('span');
+                tag.className = 'result-tag';
+                tag.textContent = '# ' + t;
+                tag.style.animationDelay = `${0.5 + i * 0.1}s`;
+                tagsContainer.appendChild(tag);
+            });
+            
+            isAnimating = false;
         }
 
         // 键盘支持（桌面端）
@@ -966,6 +966,7 @@ https://israel-rain.github.io/suanming/`;
             const homePage = document.getElementById('home-page');
             
             resultPage.classList.remove('active');
+            flipContainer.classList.remove('hidden');
             
             setTimeout(() => {
                 homePage.classList.remove('hidden');
