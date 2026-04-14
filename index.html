@@ -12,7 +12,7 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-user-select: none;
             user-select: none;
-            touch-action: pan-y;
+            touch-action: manipulation;
         }
 
         html, body {
@@ -550,6 +550,11 @@
         let isDragging = false;
         let startX = 0;
         let currentX = 0;
+        let touchStartY = 0;
+        let touchCurrentX = 0;
+        let dragStartTime = 0;
+        let hasMoved = false;
+        let isTouchOnOption = false; // 标记触摸是否在选项上
 
         const slideContainer = document.getElementById('slide-container');
         const questionPage = document.getElementById('question-page');
@@ -604,21 +609,25 @@
 
         function handleOptionClick(e) {
             if (isAnimating) return;
+            if (isDragging) return; // 如果正在拖动，不处理点击
 
-            const slide = e.target.closest('.slide-page');
+            const btn = e.target.closest('.option');
+            if (!btn) return;
+
+            const slide = btn.closest('.slide-page');
             const slideIndex = parseInt(slide.dataset.index);
 
             // 同一题内取消其他选中
             slide.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
 
-            const optionIndex = parseInt(e.target.dataset.option);
+            const optionIndex = parseInt(btn.dataset.option);
 
             // toggle
             if (selectedOption === optionIndex) {
                 selectedOption = -1;
             } else {
                 selectedOption = optionIndex;
-                e.target.classList.add('selected');
+                btn.classList.add('selected');
             }
 
             // 如果点击的是当前页，更新提示
@@ -741,14 +750,13 @@
         }
 
         // ========== 触摸事件 ==========
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchCurrentX = 0;
-        let dragStartTime = 0;
-        let hasMoved = false;
-
         questionPage.addEventListener('touchstart', (e) => {
             if (isAnimating) return;
+            
+            // 检查触摸是否在选项上
+            const target = e.target;
+            isTouchOnOption = target.closest('.option') !== null;
+            
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             touchCurrentX = touchStartX;
@@ -760,7 +768,7 @@
         }, { passive: true });
 
         questionPage.addEventListener('touchmove', (e) => {
-            if (!isDragging || isAnimating) return;
+            if (!isDragging || isAnimating || isTouchOnOption) return;
 
             const currentX = e.touches[0].clientX;
             const currentY = e.touches[0].clientY;
@@ -797,11 +805,23 @@
         questionPage.addEventListener('touchend', () => {
             if (!isDragging) return;
             isDragging = false;
+            
+            // 如果触摸在选项上，不处理滑动
+            if (isTouchOnOption) {
+                isTouchOnOption = false;
+                return;
+            }
+            isTouchOnOption = false;
 
             const deltaX = touchCurrentX - touchStartX;
             const deltaTime = Date.now() - dragStartTime;
-            const velocity = Math.abs(deltaX) / deltaTime;
+            const velocity = deltaTime > 0 ? Math.abs(deltaX) / deltaTime : 0;
             const threshold = window.innerWidth / 3;
+
+            // 判断是否是有效滑动（移动距离太小则忽略）
+            if (Math.abs(deltaX) < 15) {
+                return;
+            }
 
             // 最后一题只能右滑返回
             if (current === questions.length - 1) {
