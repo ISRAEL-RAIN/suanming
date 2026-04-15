@@ -907,6 +907,7 @@
         function startWheelDrag(e) {
             e.preventDefault();
             isWheelDragging = true;
+            isDragging = false; // 轮盘拖动不触发页面滑动
             const point = e.touches ? e.touches[0] : e;
             wheelDragStartX = point.clientX;
             wheelDragStartRotation = wheelRotation;
@@ -950,6 +951,7 @@
         function endWheelDrag(e) {
             if (!isWheelDragging) return;
             isWheelDragging = false;
+            isDragging = false; // 重置，防止阻塞后续点击
 
             // 应用惯性
             if (Math.abs(wheelVelocity) > 50) {
