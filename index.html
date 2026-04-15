@@ -990,8 +990,8 @@
             const scrollArea = document.getElementById('wheel-scroll-area');
             if (!scrollArea) return;
 
-            // 计算当前哪个年份在中心
-            const rawIndex = wheelOffset / ITEM_HEIGHT;
+            // 计算当前哪个年份在中心（与snap公式保持一致：wheelOffset = 308 - i*44）
+            const rawIndex = (wheelOffset - 308) / ITEM_HEIGHT;
             let centerIndex = Math.round(-rawIndex);
             centerIndex = Math.max(0, Math.min(wheelYears.length - 1, centerIndex));
 
