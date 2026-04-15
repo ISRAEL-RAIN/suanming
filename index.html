@@ -1095,11 +1095,20 @@
             if (slideIndex === current) {
                 // 非最后一题：选完后自动翻到下一页
                 if (current < questions.length - 1 && selectedOption >= 0) {
+                    nextHint.innerHTML = `
+                        <div class="next-hint-text">滑动翻页</div>
+                        <div class="next-arrow"><span>→</span></div>
+                    `;
                     nextHint.classList.remove('show');
                     setTimeout(() => {
                         if (selectedOption >= 0) goToNext();
                     }, 300);
                 } else {
+                    // 最后一题，更新提示文字为"滑动翻页"
+                    nextHint.innerHTML = `
+                        <div class="next-hint-text">滑动翻页</div>
+                        <div class="next-arrow"><span>→</span></div>
+                    `;
                     updateHint();
                 }
             }
