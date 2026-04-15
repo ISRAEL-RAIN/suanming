@@ -458,6 +458,53 @@
             animation: slideUp 0.5s ease 0.4s both;
         }
 
+        .result-hexagram {
+            text-align: center;
+            margin-bottom: 15px;
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .result-hexagram .hexagram-symbol {
+            font-size: 72px;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .result-hexagram .hexagram-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: #3a3a3a;
+            margin-bottom: 3px;
+        }
+
+        .result-hexagram .hexagram-motto {
+            font-size: 16px;
+            color: rgba(100,100,100,0.6);
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+        }
+
+        .result-hexagram .hexagram-desc {
+            font-size: 14px;
+            color: #5a5a5a;
+            line-height: 1.6;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        .result-section-label {
+            font-size: 12px;
+            color: rgba(200, 160, 100, 0.8);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .result-profile-emoji {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
         .result-desc {
             font-size: 16px;
             line-height: 1.8;
@@ -576,7 +623,7 @@
             </div>
             <!-- 底部提示 -->
             <div class="next-hint" id="next-hint">
-                <div class="next-hint-text">已选，滑动翻页</div>
+                <div class="next-hint-text">滑动翻页</div>
                 <div class="next-arrow"><span>→</span></div>
             </div>
         </div>
@@ -585,11 +632,21 @@
         <div id="result-page">
             <div class="result-content">
                 <div class="result-badge">✨ 仙人掐指一算 ✨</div>
-                <div class="result-type" id="result-type"></div>
+                <!-- 八卦区 -->
+                <div class="result-hexagram" id="result-hexagram"></div>
                 <h2 class="result-title" id="result-title"></h2>
+                <!-- 个人画像卡片 -->
                 <div class="result-card">
+                    <div class="result-section-label">【个人画像】</div>
+                    <div class="result-profile-emoji" id="result-profile-emoji"></div>
                     <p class="result-desc" id="result-desc"></p>
                     <div class="result-tags" id="result-tags"></div>
+                </div>
+                <!-- 未来建议卡片 -->
+                <div class="result-card">
+                    <div class="result-section-label">【未来建议】</div>
+                    <p class="result-desc" id="result-prediction-desc"></p>
+                    <div class="result-tags" id="result-prediction-tags"></div>
                 </div>
                 <div class="btn-group">
                     <button class="share-btn" onclick="shareResult()">📱 发给朋友比惨</button>
@@ -644,49 +701,49 @@
         animateParticles();
 
         // ========== 数据 ==========
-        // 题目内容（根据v6文档）
+        // 题目内容（根据v6文档，严格一字不差）
         const questions = [
             { 
-                text: "你的生辰八字是？", 
+                text: "你的出生年份是？", 
                 options: [], // 转盘特殊处理
                 isWheel: true,
                 years: [2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996]
             },
             { 
-                text: "你的性别是？", 
+                text: "你的性别是？",
                 options: ["A.男", "B.女"] 
             },
             { 
-                text: "假期作业你会？", 
-                options: ["早早写完，爽爽玩", "拖到最后几天写", "老师，我没带。。。"] 
+                text: "放长假（寒假/暑假）的第一天早上，你醒来第一件事是？",
+                options: ["躺会儿，反正时间还长，待会儿再说", "差不多了，准备列个计划开始行动", "不行，必须现在就开始，不能浪费时间"] 
             },
             { 
-                text: "周末晚上，你更想？", 
-                options: ["约朋友出去浪", "有人约的话也可以出去", "一个人待着"] 
+                text: "周末晚上，你更想？",
+                options: ["约朋友出去浪，宅在家里太浪费了", "在家待着，但有人约的话也可以出去", "一个人待着，不想被打扰"] 
             },
             { 
-                text: "微信群里突然99+，你会？", 
-                options: ["爬楼看完", "看一眼有没有@我", "划走"] 
+                text: "微信群里突然99+，你会？",
+                options: ["爬楼看完，不看完难受", "看一眼有没有@我", "划走，等安静了再说"] 
             },
             { 
-                text: "你最近的精神状态更像？", 
-                options: ["冉冉红日升", "间歇性踌躇满志", "吃饭咬到舌头，水逆警告"] 
+                text: "你最近的精神状态更像？",
+                options: ["冉冉红日升——前途光明，元气满满", "间歇性踌躇满志，持续性混吃等死", "吃饭咬到舌头，小拇趾撞到床脚——水逆警告"] 
             },
             { 
-                text: "深夜躺在床上，你在想？", 
-                options: ["明天去哪浪", "脑子里乱七八糟", "后悔/担心", "烦，想哭。。。"] 
+                text: "深夜躺在床上，你在想？",
+                options: ["明天去哪浪/吃点好的", "脑子里乱七八糟，停不下来", "后悔这个、担心那个", "烦，想哭。。。"] 
             },
             { 
-                text: '"完蛋了完蛋了"什么意思？', 
-                options: ["摊上大事了", "常规社死/挂科/被绿", "不玩"] 
+                text: "朋友突然说\"完蛋了完蛋了\"，你觉得他？",
+                options: ["摊上大事了，赶紧问问咋了", "常规操作，无非就是社死/挂科/被绿", "不玩"] 
             },
             { 
-                text: '"天王盖地虎"你会接？', 
-                options: ["宝塔镇河妖", "小鸡炖蘑菇", "论文还没写"] 
+                text: "听到\"天王盖地虎\"，你会接？",
+                options: ["宝塔镇河妖——经典咏流传", "小鸡炖蘑菇——入戏太深", "我论文还没写——这才是真正的劫"] 
             },
             { 
-                text: "大脑CPU 90%算力用在？", 
-                options: ["工作/恋爱", "外卖满减精算", "正在计算中"] 
+                text: "你的大脑CPU，90%算力用在了：",
+                options: ["工作/生活/谈恋爱——正常运转中", "外卖满减精算——红包不能浪费", "大脑正在加载中。。。——其实什么都没想"] 
             }
         ];
 
@@ -722,6 +779,18 @@
             D3: { emoji: "💫", title: "天选之人型", desc: "双喜临门！正缘和财神爷都在向你招手！你是被命运眷顾的宠儿，无论是感情还是财运，都将迎来高光时刻！", tags: ["天选之人", "财运双旺", "桃花旺盛"] },
             D4: { emoji: "🔮", title: "天机不可泄露型", desc: "你身上背负着某种特殊的使命，命运的齿轮正在悄悄转动。有些事情，现在还不是知道的时候。安心等待，时机到了自然会有答案。", tags: ["天机不可泄露", "背负天道", "静待时机"] },
             D5: { emoji: "😇", title: "傻福型", desc: "傻人有傻福，心大福气自然来！别想太多，该吃吃该睡睡，开心最重要！你的傻气就是你的福气，简单快乐才是人生真谛！", tags: ["傻人有傻福", "心大福厚", "开心就好"] }
+        };
+
+        // 八卦数据（根据v6文档）
+        const hexagrams = {
+            1:  { symbol: "☰", name: "乾卦", motto: "天行健", desc: "你是天生的领导者，拥有强烈的进取心和征服欲。你不甘于现状，总是渴望创造新的可能。" },
+            2:  { symbol: "☱", name: "兑卦", motto: "悦言开", desc: "你是天生的社交高手，热情洋溢，擅长润滑关系、化解矛盾，是朋友圈里的开心果。" },
+            3:  { symbol: "☲", name: "离卦", motto: "火耀光", desc: "你热情似火，表达力强，光芒万丈。你是那种走到哪里都能成为焦点的人。" },
+            4:  { symbol: "☳", name: "震卦", motto: "惊蛰动", desc: "你行动力十足，一鸣惊人。你是那种在关键时刻能够突破困境、力挽狂澜的人。" },
+            6:  { symbol: "☴", name: "巽卦", motto: "风送暖", desc: "你如水般灵动，适应力强，擅长渗透和沟通。你是人群中的协调者，化解冲突于无形。" },
+            7:  { symbol: "☵", name: "坎卦", motto: "水润泽", desc: "你深邃而有洞察力，危机感强，思考深入。你是那种看透事物本质的人。" },
+            8:  { symbol: "☶", name: "艮卦", motto: "山有靠", desc: "你稳重可靠，坚守原则，脚踏实地。你是那种能给人安全感的人。" },
+            0:  { symbol: "☷", name: "坤卦", motto: "地势坤", desc: "你承载万物，包容大度，柔顺而有力量。你是那种默默支撑、不可或缺的人。" }
         };
 
         // ========== 状态 ==========
@@ -1244,18 +1313,40 @@
                 // 计算结果
                 const result = calculateResult();
                 
-                document.getElementById('result-type').textContent = result.emoji;
-                document.getElementById('result-title').textContent = result.title;
-                document.getElementById('result-desc').textContent = result.desc;
+                // 渲染八卦
+                const hexHtml = `
+                    <div class="hexagram-symbol">${result.hexagram.symbol}</div>
+                    <div class="hexagram-name">${result.hexagram.name}</div>
+                    <div class="hexagram-motto">—— ${result.hexagram.motto}</div>
+                    <div class="hexagram-desc">${result.hexagram.desc}</div>
+                `;
+                document.getElementById('result-hexagram').innerHTML = hexHtml;
+                
+                document.getElementById('result-title').textContent = result.profile.title;
+                document.getElementById('result-profile-emoji').textContent = result.profile.emoji;
+                document.getElementById('result-desc').textContent = result.profile.desc;
 
+                // 个人画像标签
                 const tagsContainer = document.getElementById('result-tags');
                 tagsContainer.innerHTML = '';
-                result.tags.forEach((t, i) => {
+                result.profile.tags.forEach((t, i) => {
                     const tag = document.createElement('span');
                     tag.className = 'result-tag';
                     tag.textContent = '# ' + t;
                     tag.style.animationDelay = `${0.5 + i * 0.1}s`;
                     tagsContainer.appendChild(tag);
+                });
+
+                // 未来建议
+                document.getElementById('result-prediction-desc').textContent = result.prediction.desc;
+                const predTagsContainer = document.getElementById('result-prediction-tags');
+                predTagsContainer.innerHTML = '';
+                result.prediction.tags.forEach((t, i) => {
+                    const tag = document.createElement('span');
+                    tag.className = 'result-tag';
+                    tag.textContent = '# ' + t;
+                    tag.style.animationDelay = `${0.6 + i * 0.1}s`;
+                    predTagsContainer.appendChild(tag);
                 });
 
                 isAnimating = false;
@@ -1310,24 +1401,40 @@
                 else if (cCount === 3) dType = 'D5'; // 3个C → D5傻福型
             }
 
+            // 八卦计算（根据v6文档）
+            // 男性：(100 - 出生年份后两位) ÷ 9，取余数，结果范围0-8（0≡9）
+            // 女性：(出生年份后两位 - 4) ÷ 9，取余数，结果范围0-8（0≡9）
+            const yearLast2 = birthYear % 100;
+            let remainder;
+            if (answers[1] === 0) { // 男
+                remainder = ((100 - yearLast2 - 1) % 9 + 9) % 9; // 范围0-8
+            } else { // 女
+                remainder = ((yearLast2 + 6) % 9 + 9) % 9; // 范围0-8
+            }
+            // 余数为5的特殊情况：男→坤卦(0)，女→艮卦(8)
+            const hexKey = (remainder === 5)
+                ? (answers[1] === 0 ? 0 : 8)
+                : remainder;
+            const hexagram = hexagrams[hexKey];
+
             // 组合画像
             const profileKey = `${aType}${bType}${cType}`;
             const profile = profileModules[profileKey] || profileModules['A1B1C1'];
             const prediction = predictions[dType];
 
             return {
-                emoji: profile.emoji,
-                title: `${profile.title} ${prediction.title}`,
-                desc: `${profile.desc}\n\n${prediction.desc}`,
-                tags: [...new Set([...profile.tags, ...prediction.tags])]
+                hexagram: hexagram,
+                profile: profile,
+                prediction: prediction
             };
         }
 
-        // 选项分数：A=3, B=2, C=1
+        // 选项分数：A=3, B=2, C=1, D=1（Q7的D=1分）
         function getScore(optionIndex) {
             if (optionIndex === 0) return 3; // A选项
             if (optionIndex === 1) return 2; // B选项
             if (optionIndex === 2) return 1; // C选项
+            if (optionIndex === 3) return 1; // D选项（Q7专用，1分）
             return 1; // 默认
         }
 
