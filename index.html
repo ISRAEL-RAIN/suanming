@@ -759,7 +759,7 @@
             },
             { 
                 text: "深夜躺在床上，你在想？",
-                options: ["明天去哪浪/吃点好的", "脑子里乱七八糟，停不下来", "后悔这个、担心那个", "烦，想哭。。。"] 
+                options: ["明天去哪浪/吃点好的", "脑子里乱七八糟，停不下来", "烦，想哭。。。"] 
             },
             { 
                 text: "朋友突然说\"完蛋了完蛋了\"，你觉得他？",
@@ -1114,16 +1114,10 @@
             e.stopPropagation(); // 阻止冒泡
             isWheelDragging = false;
 
-            // 吸附到最近的年份
+            // 吸附到最近的年份（不使用velocity，防止越界）
             const rawIndex = -wheelOffset / ITEM_HEIGHT;
             let targetIndex = Math.round(rawIndex);
             targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
-
-            // 加上惯性速度
-            if (Math.abs(wheelVelocity) > 1) {
-                targetIndex -= Math.round(wheelVelocity * 0.8);
-                targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
-            }
 
             snapWheelToIndex(targetIndex, true);
         }
@@ -1375,20 +1369,25 @@
             const cScore = getScore(q4) + getScore(q5);
             const cType = cScore >= 4 ? 'C1' : 'C2';
 
-            // D维度：未来预测
+            // D维度：未来预测（Q7去掉C后，选项变为[A,B,D]，D即为原D）
+            // Q6+Q7 score范围：2-6
             const dScore = getScore(q6) + getScore(q7);
-            let dType = 'D1'; // 默认积极型
+            const cCount = [q8, q9, q10].filter(q => q === 2).length;
 
-            if (dScore < 4) {
-                // 小于4分 → 转折型D2
-                dType = 'D2';
+            let dType = 'D1'; // 默认积极型
+            if (dScore <= 3) {
+                dType = 'D2'; // 2-3分 → 先苦后甜
+            } else if (dScore === 4) {
+                // 4分 → 按Q8-Q10 C数量
+                if (cCount === 0) dType = 'D4';
+                else if (cCount === 1) dType = 'D5';
+                else if (cCount >= 2) dType = 'D3';
             } else {
-                // 大于等于4分，按Q8~Q10的C选项数量决定
-                const cCount = [q8, q9, q10].filter(q => q === 2).length;
-                if (cCount === 0) dType = 'D1'; // 0个C → D1积极型
-                else if (cCount === 1) dType = 'D4'; // 1个C → D4嘉豪型
-                else if (cCount === 2) dType = 'D3'; // 2个C → D3天选之人
-                else if (cCount === 3) dType = 'D5'; // 3个C → D5傻福型
+                // 5-6分 → 按Q8-Q10 C数量
+                if (cCount === 0) dType = 'D1';
+                else if (cCount === 1) dType = 'D4';
+                else if (cCount === 2) dType = 'D5';
+                else if (cCount === 3) dType = 'D3';
             }
 
             // 八卦计算（河洛数 → 先天八卦）
@@ -1419,12 +1418,11 @@
             };
         }
 
-        // 选项分数：A=3, B=2, C=1, D=1（Q7的D=1分）
+        // 选项分数：A=3, B=2, C=1（Q7去C后原D改为C，分值1）
         function getScore(optionIndex) {
             if (optionIndex === 0) return 3; // A选项
             if (optionIndex === 1) return 2; // B选项
-            if (optionIndex === 2) return 1; // C选项
-            if (optionIndex === 3) return 1; // D选项（Q7专用，1分）
+            if (optionIndex === 2) return 1; // C选项（原D）
             return 1; // 默认
         }
 
