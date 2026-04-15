@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>算命仙人 - 你是哪种摆烂仙人</title>
+    <title>算命仙人 - 小友，算算天命如何？</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <style>
-        /* ========== 古典江湖配色变量 ========== */
+        /* ========== 复古暖色调配色（退回旧版）========== */
         :root {
-            --bg-dark: #0a0a0f;
-            --bg-card: rgba(20, 18, 28, 0.85);
-            --bg-card-solid: #14121c;
-            --vermillion: #c94043;
-            --vermillion-dark: #a33235;
-            --gold: #d4a853;
-            --gold-light: #e8c97a;
-            --ink: #2a2535;
-            --text-light: #e8dcc8;
-            --text-muted: #8a7d6e;
-            --border-gold: rgba(212, 168, 83, 0.3);
-            --shadow-gold: rgba(201, 64, 67, 0.15);
-            --particle-color: rgba(212, 168, 83, 0.4);
+            --bg-dark: #fdf6e8;
+            --bg-card: rgba(255, 255, 255, 0.7);
+            --bg-card-solid: #ffffff;
+            --vermillion: #e67e22;
+            --vermillion-dark: #d35400;
+            --gold: #f39c12;
+            --gold-light: #f1c40f;
+            --ink: #2c2c2c;
+            --text-light: #444;
+            --text-muted: #888;
+            --border-gold: rgba(243, 156, 18, 0.3);
+            --shadow-gold: rgba(243, 156, 18, 0.15);
+            --particle-color: rgba(212, 168, 83, 0.3);
         }
 
         * {
@@ -46,7 +46,7 @@
 
         body {
             font-family: 'ZCOOL XiaoWei', 'Noto Serif SC', 'PingFang SC', serif;
-            background: radial-gradient(ellipse at 50% 30%, #1a1525 0%, #0a0a0f 60%, #050508 100%);
+            background: radial-gradient(ellipse at 50% 30%, #fef9f0 0%, #fdf6e8 50%, #f8ead8 100%);
             color: var(--text-light);
         }
 
@@ -103,7 +103,7 @@
             height: 120px;
             margin: 0 auto 24px;
             animation: float 4s ease-in-out infinite;
-            filter: drop-shadow(0 0 20px rgba(212, 168, 83, 0.4));
+            filter: drop-shadow(0 4px 12px rgba(243, 156, 18, 0.3));
         }
 
         @keyframes float {
@@ -116,8 +116,8 @@
             font-size: 52px;
             font-weight: 400;
             margin-bottom: 12px;
-            color: var(--gold);
-            text-shadow: 0 0 40px rgba(212, 168, 83, 0.5), 0 2px 4px rgba(0,0,0,0.5);
+            color: #e67e22;
+            text-shadow: 0 2px 8px rgba(243, 156, 18, 0.3), 0 2px 4px rgba(0,0,0,0.1);
             letter-spacing: 8px;
         }
 
@@ -281,7 +281,7 @@
 
         .wheel-label {
             font-size: 18px;
-            color: var(--gold);
+            color: #e67e22;
             margin-bottom: 20px;
             font-weight: 700;
             font-family: 'Noto Serif SC', serif;
@@ -314,11 +314,11 @@
         }
         .wheel-mask-top {
             top: 0;
-            background: linear-gradient(to bottom, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0) 100%);
+            background: linear-gradient(to bottom, rgba(253,246,232,0.95) 0%, rgba(253,246,232,0) 100%);
         }
         .wheel-mask-bottom {
             bottom: 0;
-            background: linear-gradient(to top, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0) 100%);
+            background: linear-gradient(to top, rgba(253,246,232,0.95) 0%, rgba(253,246,232,0) 100%);
         }
 
         /* 选中指示线 */
@@ -498,7 +498,7 @@
             width: 100px;
             height: 100px;
             margin: 0 auto 16px;
-            filter: drop-shadow(0 0 20px rgba(212, 168, 83, 0.3));
+            filter: drop-shadow(0 4px 12px rgba(243, 156, 18, 0.25));
             animation: float 3s ease-in-out infinite;
         }
 
@@ -746,8 +746,8 @@
                     <circle cx="60" cy="60" r="3" fill="#d4a853"/>
                 </svg>
                 <h1 class="title">算命仙人</h1>
-                <p class="subtitle">你是哪种摆烂仙人？</p>
-                <button class="start-btn" onclick="startTest()">开始测试</button>
+                <p class="subtitle">小友，算算天命如何？</p>
+                <button class="start-btn" onclick="startTest()">算一卦</button>
             </div>
         </div>
 
