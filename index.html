@@ -4,7 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>算命仙人 - 你是哪种摆烂仙人</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <style>
+        /* ========== 古典江湖配色变量 ========== */
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(20, 18, 28, 0.85);
+            --bg-card-solid: #14121c;
+            --vermillion: #c94043;
+            --vermillion-dark: #a33235;
+            --gold: #d4a853;
+            --gold-light: #e8c97a;
+            --ink: #2a2535;
+            --text-light: #e8dcc8;
+            --text-muted: #8a7d6e;
+            --border-gold: rgba(212, 168, 83, 0.3);
+            --shadow-gold: rgba(201, 64, 67, 0.15);
+            --particle-color: rgba(212, 168, 83, 0.4);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -25,9 +45,9 @@
         }
 
         body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
-            color: #4a4a4a;
+            font-family: 'ZCOOL XiaoWei', 'Noto Serif SC', 'PingFang SC', serif;
+            background: radial-gradient(ellipse at 50% 30%, #1a1525 0%, #0a0a0f 60%, #050508 100%);
+            color: var(--text-light);
         }
 
         /* 粒子画布 */
@@ -70,49 +90,69 @@
 
         .home-content {
             text-align: center;
-            animation: fadeIn 0.8s ease;
+            animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .emoji-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
+        .home-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            animation: float 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(212, 168, 83, 0.4));
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(5deg); }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
         }
 
         .title {
-            font-size: 42px;
-            font-weight: 900;
-            margin-bottom: 10px;
-            color: #3a3a3a;
+            font-family: 'Ma Shan Zheng', 'Noto Serif SC', serif;
+            font-size: 52px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: var(--gold);
+            text-shadow: 0 0 40px rgba(212, 168, 83, 0.5), 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 8px;
         }
 
         .subtitle {
-            font-size: 16px;
-            color: rgba(100, 100, 100, 0.8);
-            margin-bottom: 50px;
-            letter-spacing: 1px;
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 56px;
+            letter-spacing: 4px;
+            font-weight: 400;
         }
 
         .start-btn {
-            padding: 16px 50px;
+            position: relative;
+            padding: 16px 56px;
             font-size: 18px;
-            font-weight: bold;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 700;
             border: none;
-            border-radius: 50px;
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            color: #fff;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--vermillion), var(--vermillion-dark));
+            color: var(--gold-light);
             cursor: pointer;
-            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.3);
+            letter-spacing: 6px;
+            box-shadow: 0 0 30px rgba(201, 64, 67, 0.4), 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--gold), var(--vermillion));
+            z-index: -1;
+            opacity: 0.5;
         }
 
         /* ========== 答题页 ========== */
@@ -139,7 +179,7 @@
             width: 100%;
             height: 100%;
             display: flex;
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         /* 单个题目页 */
@@ -151,7 +191,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
+            background: transparent;
         }
 
         .question-content {
@@ -164,8 +204,8 @@
 
         .progress-bar {
             width: 100%;
-            height: 4px;
-            background: rgba(200, 180, 150, 0.3);
+            height: 3px;
+            background: rgba(212, 168, 83, 0.15);
             border-radius: 2px;
             margin-bottom: 30px;
             overflow: hidden;
@@ -173,24 +213,26 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #e67e22, #f39c12);
+            background: linear-gradient(90deg, var(--vermillion), var(--gold));
             border-radius: 2px;
-            transition: width 0.3s ease;
+            transition: width 0.4s ease;
         }
 
         .question-number {
-            font-size: 14px;
-            color: rgba(100, 100, 100, 0.6);
+            font-size: 12px;
+            color: var(--text-muted);
             margin-bottom: 10px;
+            letter-spacing: 3px;
         }
 
         .question-text {
             font-size: 22px;
             margin-bottom: 35px;
-            line-height: 1.5;
-            font-weight: 600;
-            color: #3a3a3a;
+            line-height: 1.7;
+            font-weight: 700;
+            color: var(--text-light);
             text-align: center;
+            font-family: 'Noto Serif SC', serif;
         }
 
         /* 选项 */
@@ -204,14 +246,17 @@
 
         .option {
             padding: 18px 24px;
-            font-size: 16px;
-            border: 2px solid rgba(200, 180, 150, 0.4);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #5a5a5a;
+            font-size: 15px;
+            border: 1px solid var(--border-gold);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-light);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             text-align: left;
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1.6;
+            backdrop-filter: blur(10px);
         }
 
         .option:active {
@@ -219,10 +264,11 @@
         }
 
         .option.selected {
-            background: linear-gradient(135deg, rgba(230, 126, 34, 0.15), rgba(211, 84, 0, 0.1));
-            border-color: #e67e22;
-            color: #c05700;
+            background: rgba(201, 64, 67, 0.15);
+            border-color: var(--vermillion);
+            color: var(--gold-light);
             transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(201, 64, 67, 0.2);
         }
 
         /* ========== iOS风格滚筒选择器 (Q1) ========== */
@@ -235,9 +281,11 @@
 
         .wheel-label {
             font-size: 18px;
-            color: #c05700;
+            color: var(--gold);
             margin-bottom: 20px;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 2px;
         }
 
         /* 滚筒视窗 */
@@ -246,15 +294,15 @@
             width: 200px;
             height: 220px;
             overflow: hidden;
-            border-radius: 16px;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(200,180,150,0.3);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);
+            border-radius: 12px;
+            background: var(--bg-card);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-gold);
+            box-shadow: 0 0 40px rgba(212, 168, 83, 0.1), 0 8px 30px rgba(0,0,0,0.4);
         }
 
-        /* 上下渐变遮罩，模拟iOS选择效果 */
+        /* 上下渐变遮罩 */
         .wheel-mask-top,
         .wheel-mask-bottom {
             position: absolute;
@@ -266,11 +314,11 @@
         }
         .wheel-mask-top {
             top: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(to bottom, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0) 100%);
         }
         .wheel-mask-bottom {
             bottom: 0;
-            background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(to top, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0) 100%);
         }
 
         /* 选中指示线 */
@@ -281,9 +329,9 @@
             right: 8px;
             height: 48px;
             transform: translateY(-50%);
-            border-radius: 12px;
-            background: rgba(230, 126, 34, 0.12);
-            border: 1.5px solid rgba(230, 126, 34, 0.35);
+            border-radius: 8px;
+            background: rgba(201, 64, 67, 0.12);
+            border: 1px solid rgba(201, 64, 67, 0.35);
             z-index: 4;
             pointer-events: none;
         }
@@ -314,14 +362,15 @@
             justify-content: center;
             font-size: 20px;
             font-weight: 700;
-            color: #bbb;
+            color: rgba(138, 125, 110, 0.5);
             transition: color 0.15s ease, opacity 0.15s ease;
             will-change: transform, opacity, color;
             pointer-events: none;
+            font-family: 'Noto Serif SC', serif;
         }
 
         .wheel-item.selected {
-            color: #c05700;
+            color: var(--gold-light);
             font-size: 24px;
         }
 
@@ -329,8 +378,9 @@
         .wheel-hint {
             margin-top: 12px;
             font-size: 13px;
-            color: rgba(100,100,100,0.5);
+            color: var(--text-muted);
             text-align: center;
+            letter-spacing: 2px;
         }
 
         .confirm-btn {
@@ -339,14 +389,16 @@
             font-size: 16px;
             font-weight: bold;
             border: none;
-            border-radius: 25px;
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            color: #fff;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--vermillion), var(--vermillion-dark));
+            color: var(--gold-light);
             cursor: pointer;
             opacity: 0.4;
             pointer-events: none;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(230,126,34,0.3);
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 4px;
+            box-shadow: 0 0 20px rgba(201, 64, 67, 0.3);
         }
 
         .confirm-btn.active {
@@ -356,7 +408,6 @@
 
         .confirm-btn:active {
             transform: scale(0.96);
-            box-shadow: 0 2px 8px rgba(230,126,34,0.3);
         }
 
         /* 底部提示 */
@@ -378,17 +429,17 @@
 
         .next-hint-text {
             font-size: 13px;
-            color: rgba(100, 100, 100, 0.6);
+            color: var(--text-muted);
             margin-bottom: 8px;
         }
 
         .next-arrow {
-            animation: arrowBounce 1s ease-in-out infinite;
+            animation: arrowBounce 1.2s ease-in-out infinite;
         }
 
         .next-arrow span {
             font-size: 24px;
-            color: #e67e22;
+            color: var(--gold);
         }
 
         @keyframes arrowBounce {
@@ -397,14 +448,17 @@
         }
 
         .view-result-btn {
-            padding: 12px 30px;
+            padding: 14px 36px;
             font-size: 16px;
             font-weight: bold;
-            border: 2px solid #e67e22;
-            border-radius: 25px;
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            color: #fff;
+            border: 1px solid var(--vermillion);
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--vermillion), var(--vermillion-dark));
+            color: var(--gold-light);
             cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 4px;
+            box-shadow: 0 0 20px rgba(201, 64, 67, 0.3);
         }
 
         /* ========== 结果页 (支持上下滚动) ========== */
@@ -421,7 +475,7 @@
             opacity: 0;
             pointer-events: none;
             z-index: 20;
-            background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
+            background: transparent;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -429,23 +483,36 @@
         #result-page.active {
             opacity: 1;
             pointer-events: auto;
+            animation: fadeIn 0.8s ease;
         }
 
         .result-content {
             text-align: center;
             width: 90%;
             max-width: 450px;
-            padding: 20px 0 60px;
+            padding: 10px 0 60px;
+        }
+
+        /* 老道插图 */
+        .fortune-master-svg {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+            filter: drop-shadow(0 0 20px rgba(212, 168, 83, 0.3));
+            animation: float 3s ease-in-out infinite;
         }
 
         .result-badge {
             display: inline-block;
-            padding: 8px 20px;
-            background: rgba(230, 126, 34, 0.15);
+            padding: 8px 24px;
+            background: rgba(201, 64, 67, 0.12);
+            border: 1px solid rgba(201, 64, 67, 0.3);
             border-radius: 20px;
-            font-size: 14px;
-            color: #c05700;
-            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--gold);
+            margin-bottom: 16px;
+            letter-spacing: 4px;
+            font-family: 'Noto Serif SC', serif;
         }
 
         .result-type {
@@ -460,11 +527,12 @@
         }
 
         .result-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 900;
             margin-bottom: 25px;
-            color: #3a3a3a;
+            color: var(--text-light);
             animation: slideUp 0.5s ease 0.2s both;
+            display: none; /* 隐藏标题 */
         }
 
         @keyframes slideUp {
@@ -473,56 +541,60 @@
         }
 
         .result-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            padding: 28px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(200, 180, 150, 0.3);
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-gold);
             text-align: left;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
             animation: slideUp 0.5s ease 0.4s both;
         }
 
         .result-hexagram {
             text-align: center;
             margin-bottom: 15px;
-            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s both;
         }
 
         .result-hexagram .hexagram-symbol {
             font-size: 72px;
             line-height: 1;
             margin-bottom: 5px;
+            filter: drop-shadow(0 0 15px rgba(212, 168, 83, 0.5));
         }
 
         .result-hexagram .hexagram-name {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
-            color: #3a3a3a;
+            color: var(--gold);
             margin-bottom: 3px;
+            font-family: 'Noto Serif SC', serif;
         }
 
         .result-hexagram .hexagram-motto {
             font-size: 16px;
-            color: rgba(100,100,100,0.6);
+            color: var(--text-muted);
             letter-spacing: 4px;
             margin-bottom: 8px;
         }
 
         .result-hexagram .hexagram-desc {
             font-size: 14px;
-            color: #5a5a5a;
-            line-height: 1.6;
+            color: var(--text-muted);
+            line-height: 1.7;
             max-width: 320px;
             margin: 0 auto;
         }
 
         .result-section-label {
             font-size: 12px;
-            color: rgba(200, 160, 100, 0.8);
-            letter-spacing: 2px;
+            color: var(--gold);
+            letter-spacing: 3px;
             margin-bottom: 12px;
             font-weight: 600;
+            font-family: 'Noto Serif SC', serif;
         }
 
         .result-profile-emoji {
@@ -531,26 +603,29 @@
         }
 
         .result-desc {
-            font-size: 16px;
-            line-height: 1.8;
-            color: #5a5a5a;
+            font-size: 15px;
+            line-height: 1.9;
+            color: var(--text-light);
+            font-family: 'Noto Serif SC', serif;
         }
 
         .result-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 18px;
             justify-content: center;
         }
 
         .result-tag {
-            padding: 8px 16px;
-            background: rgba(230, 126, 34, 0.1);
+            padding: 6px 14px;
+            background: rgba(212, 168, 83, 0.1);
+            border: 1px solid var(--border-gold);
             border-radius: 20px;
-            font-size: 14px;
-            color: #c05700;
+            font-size: 13px;
+            color: var(--gold);
             animation: tagIn 0.4s ease both;
+            letter-spacing: 1px;
         }
 
         @keyframes tagIn {
@@ -568,46 +643,59 @@
 
         .share-btn {
             padding: 16px;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
-            border: none;
-            border-radius: 16px;
-            background: #25D366;
-            color: #fff;
+            border: 1px solid var(--border-gold);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--gold);
             cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(212, 168, 83, 0.1);
+        }
+
+        .share-btn:active {
+            background: rgba(212, 168, 83, 0.1);
         }
 
         .retry-btn {
             padding: 14px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            border: 2px solid rgba(200, 180, 150, 0.5);
-            border-radius: 16px;
+            border: 1px solid rgba(138, 125, 110, 0.3);
+            border-radius: 8px;
             background: transparent;
-            color: #5a5a5a;
+            color: var(--text-muted);
             cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .retry-btn:active {
+            background: rgba(255,255,255,0.05);
         }
 
         /* 移动端适配 */
         @media (max-width: 480px) {
             .title {
-                font-size: 34px;
+                font-size: 40px;
+                letter-spacing: 6px;
             }
 
             .question-text {
-                font-size: 20px;
+                font-size: 19px;
             }
 
             .result-type {
                 font-size: 50px;
             }
 
-            .result-title {
-                font-size: 24px;
-            }
-
-            .emoji-icon {
-                font-size: 60px;
+            .home-logo {
+                width: 96px;
+                height: 96px;
             }
 
             .slide-page {
@@ -637,7 +725,26 @@
         <!-- 首页 -->
         <div id="home-page">
             <div class="home-content">
-                <div class="emoji-icon">🔮</div>
+                <!-- 八卦罗盘SVG Logo -->
+                <svg class="home-logo" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="60" r="56" stroke="#d4a853" stroke-width="1.5" opacity="0.6"/>
+                    <circle cx="60" cy="60" r="44" stroke="#d4a853" stroke-width="1" opacity="0.4"/>
+                    <circle cx="60" cy="60" r="32" stroke="#c94043" stroke-width="1.5" opacity="0.5"/>
+                    <!-- 八卦符号 -->
+                    <line x1="60" y1="20" x2="60" y2="100" stroke="#d4a853" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="60" x2="100" y2="60" stroke="#d4a853" stroke-width="1" opacity="0.3"/>
+                    <!-- ☰ 乾 -->
+                    <line x1="48" y1="35" x2="72" y2="35" stroke="#d4a853" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="48" y1="42" x2="72" y2="42" stroke="#d4a853" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="48" y1="49" x2="72" y2="49" stroke="#d4a853" stroke-width="3" stroke-linecap="round"/>
+                    <!-- ☷ 坤 -->
+                    <line x1="48" y1="65" x2="72" y2="65" stroke="#c94043" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="48" y1="72" x2="63" y2="72" stroke="#c94043" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="57" y1="79" x2="72" y2="79" stroke="#c94043" stroke-width="3" stroke-linecap="round"/>
+                    <!-- 中心圆点 -->
+                    <circle cx="60" cy="60" r="6" fill="#c94043" opacity="0.8"/>
+                    <circle cx="60" cy="60" r="3" fill="#d4a853"/>
+                </svg>
                 <h1 class="title">算命仙人</h1>
                 <p class="subtitle">你是哪种摆烂仙人？</p>
                 <button class="start-btn" onclick="startTest()">开始测试</button>
@@ -659,15 +766,32 @@
         <!-- 结果页 -->
         <div id="result-page">
             <div class="result-content">
-                <div class="result-badge">✨ 仙人掐指一算 ✨</div>
+                <!-- 老道SVG插图 -->
+                <svg class="fortune-master-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 帽子 -->
+                    <path d="M30 38 L50 20 L70 38" stroke="#d4a853" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="38" rx="22" ry="6" stroke="#d4a853" stroke-width="1.5" fill="none"/>
+                    <!-- 头部 -->
+                    <circle cx="50" cy="52" r="14" stroke="#d4a853" stroke-width="1.5" fill="none" opacity="0.6"/>
+                    <!-- 长须 -->
+                    <path d="M44 60 Q42 75 46 85" stroke="#d4a853" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <path d="M50 62 Q50 76 52 84" stroke="#d4a853" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <path d="M56 60 Q58 75 54 85" stroke="#d4a853" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <!-- 眼睛 -->
+                    <circle cx="45" cy="50" r="1.5" fill="#d4a853"/>
+                    <circle cx="55" cy="50" r="1.5" fill="#d4a853"/>
+                    <!-- 拂尘 -->
+                    <line x1="70" y1="42" x2="85" y2="60" stroke="#d4a853" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M82 58 Q88 62 90 55 M82 58 Q90 56 92 62 M82 58 Q88 52 93 56" stroke="#c94043" stroke-width="1" fill="none" stroke-linecap="round"/>
+                </svg>
+                <div class="result-badge">仙人掐指一算</div>
                 <!-- 八卦区 -->
                 <div class="result-section-label">「卦象」</div>
                 <div class="result-hexagram" id="result-hexagram"></div>
-                
+
                 <!-- 个人画像卡片 -->
                 <div class="result-card">
                     <p class="result-desc" id="result-desc"></p>
-                    
                 </div>
                 <!-- 未来建议卡片 -->
                 <div class="result-card">
@@ -676,15 +800,15 @@
                     <div class="result-tags" id="result-prediction-tags"></div>
                 </div>
                 <div class="btn-group">
-                    <button class="share-btn" onclick="shareResult()">📱 分享此卦</button>
-                    <button class="retry-btn" onclick="retry()">再算一挂</button>
+                    <button class="share-btn" onclick="shareResult()">📜 分享此卦</button>
+                    <button class="retry-btn" onclick="retry()">再算一卦</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ========== 粒子效果 ==========
+        // ========== 古典粒子效果（八卦符号飘落） ==========
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -695,30 +819,46 @@
         }
         resizeCanvas();
 
+        // 八卦符号列表
+        const HEXAGRAMS = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
+
         class Particle {
-            constructor() { this.reset(); }
-            reset() {
+            constructor() { this.reset(true); }
+            reset(randomY = false) {
                 this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 3 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.5;
-                this.speedY = (Math.random() - 0.5) * 0.5;
-                this.opacity = Math.random() * 0.5 + 0.1;
+                this.y = randomY ? Math.random() * canvas.height : -40;
+                this.size = Math.random() * 12 + 18; // 字号 18-30px
+                this.symbol = HEXAGRAMS[Math.floor(Math.random() * HEXAGRAMS.length)];
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = Math.random() * 0.6 + 0.2; // 缓慢下落
+                this.opacity = Math.random() * 0.25 + 0.08;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+                this.floatOffset = Math.random() * Math.PI * 2;
+                this.floatSpeed = Math.random() * 0.01 + 0.005;
             }
             update() {
-                this.x += this.speedX;
                 this.y += this.speedY;
-                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+                this.x += this.speedX + Math.sin(this.y * 0.01 + this.floatOffset) * 0.3;
+                this.rotation += this.rotationSpeed;
+                if (this.y > canvas.height + 40) this.reset(false);
+                if (this.x < -40) this.x = canvas.width + 40;
+                if (this.x > canvas.width + 40) this.x = -40;
             }
             draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(230, 126, 34, ${this.opacity})`;
-                ctx.fill();
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.font = `${this.size}px serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = `rgba(212, 168, 83, ${this.opacity})`;
+                ctx.fillText(this.symbol, 0, 0);
+                ctx.restore();
             }
         }
 
-        for (let i = 0; i < 25; i++) particles.push(new Particle());
+        for (let i = 0; i < 18; i++) particles.push(new Particle());
 
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -854,7 +994,7 @@
             answers = [];
             selectedYear = null;
             yearConfirmed = false;
-            wheelOffset = 110 - 8 * ITEM_HEIGHT; // 2006年在视窗中心
+            wheelOffset = 88 - 8 * ITEM_HEIGHT; // 2006年在视窗中心（基准值88）
             currentWheelIndex = 8;
 
             document.getElementById('home-page').classList.add('hidden');
