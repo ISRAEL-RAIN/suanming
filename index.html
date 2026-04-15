@@ -953,12 +953,9 @@
             // 渲染年份条目
             renderWheelItems();
 
-            // 初始状态：item 8 视觉中心 = 8*44 + wheelOffset + 22 = 110（视窗中心）
-            // → wheelOffset = 110 - 8*44 - 22 = 110 - 352 - 22 = -264? No:
-            // 正确：8*44 + wheelOffset + 22 = 110 → wheelOffset = 110 - 8*44 - 22 = 110 - 352 - 22 = -264
-            // 但按 snap 公式 wheelOffset = 110 - i*44：8 → 110 - 352 = -242
-            // 实际初始位置用 snap 公式：2002(index=8) 居中
-            wheelOffset = 110 - currentWheelIndex * ITEM_HEIGHT;
+            // 几何推导：item i 视觉中心 = i*44 + wheelOffset + 22 = 110（视窗中心）
+            // → wheelOffset = 88 - i*44
+            wheelOffset = 88 - currentWheelIndex * ITEM_HEIGHT;
             updateWheelDisplay();
 
             scrollArea.addEventListener('mousedown', startWheelDrag);
@@ -1044,13 +1041,10 @@
         }
 
         function snapWheelToIndex(targetIndex, animate = true) {
-            // 几何推导（关键！）：
-            //   item i 视觉中心 = i*44 + wheelOffset + 22
-            //   要使 item i 在视窗中心(110px):
-            //     i*44 + wheelOffset + 22 = 110
-            //     → wheelOffset = 110 - i*44
-            // 验证: i=0 → 110, i=8(2002) → -242, i=14(1996) → -506
-            const rawOffset = 110 - targetIndex * ITEM_HEIGHT;
+            // 几何推导：item i 视觉中心 = i*44 + wheelOffset + 22 = 110（视窗中心）
+            // → wheelOffset = 88 - i*44
+            // 验证: i=0(2010) → 88, i=8(2002) → -264, i=14(1996) → -528
+            const rawOffset = 88 - targetIndex * ITEM_HEIGHT;
 
             if (!animate) {
                 wheelOffset = rawOffset;
@@ -1113,12 +1107,11 @@
 
             wheelOffset += deltaY;
 
-            // 边界弹性（完整推导）：
-            // maxOffset = 110: index=0 时，2010在视窗顶可见
-            // minOffset = -616: index=14 时，1996在视窗底可见
-            // （之前用-572会把1996挡住，阻止用户拖到最底）
-            const maxOffset = 110;
-            const minOffset = -616;
+            // 边界弹性（snap=88-i*44）：
+            // maxOffset = 88:  index=0(2010)时，2010顶在视窗顶可见
+            // minOffset = -528: index=14(1996)时，1996在视窗底可见（-616会挡住1996）
+            const maxOffset = 88;
+            const minOffset = -528;
             if (wheelOffset > maxOffset) {
                 wheelOffset = maxOffset + (wheelOffset - maxOffset) * 0.4;
             } else if (wheelOffset < minOffset) {
@@ -1134,8 +1127,8 @@
             isWheelDragging = false;
 
             // 吸附到最近的年份（不使用velocity，防止越界）
-            // snap公式: wheelOffset = 110 - i*44 → 反算 i = (110 - wheelOffset) / 44
-            const rawIndex = (110 - wheelOffset) / ITEM_HEIGHT;
+            // snap公式: wheelOffset = 88 - i*44 → 反算 i = (88 - wheelOffset) / 44
+            const rawIndex = (88 - wheelOffset) / ITEM_HEIGHT;
             let targetIndex = Math.round(rawIndex);
             targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
 
@@ -1286,7 +1279,7 @@
                 const savedIndex = wheelYears.indexOf(selectedYear);
                 currentWheelIndex = savedIndex >= 0 ? savedIndex : 8;
                 setTimeout(() => {
-                    wheelOffset = 110 - currentWheelIndex * ITEM_HEIGHT;
+                    wheelOffset = 88 - currentWheelIndex * ITEM_HEIGHT;
                     updateWheelDisplay();
                 }, 50);
             }
