@@ -1378,20 +1378,20 @@
             const dScore = getScore(q6) + getScore(q7);
             const cCount = [q8, q9, q10].filter(q => q === 2).length;
 
+            // ========== D维度（按用户确认的六步流程）==========
+            // Q8-Q10中C选项（index=2）的数量
+            const cCount = [q8, q9, q10].filter(q => q === 2).length;
+
             let dType = 'D1'; // 默认积极型
             if (dScore <= 3) {
-                dType = 'D2'; // 2-3分 → 先苦后甜
-            } else if (dScore === 4) {
-                // 4分 → 按Q8-Q10 C数量
-                if (cCount === 0) dType = 'D4';
-                else if (cCount === 1) dType = 'D5';
-                else if (cCount >= 2) dType = 'D3';
+                // 第一步：Q6+Q7 ≤ 3 → D2转折型（不看Q8-Q10）
+                dType = 'D2';
             } else {
-                // 5-6分 → 按Q8-Q10 C数量
-                if (cCount === 0) dType = 'D1';
-                else if (cCount === 1) dType = 'D4';
-                else if (cCount === 2) dType = 'D5';
-                else if (cCount === 3) dType = 'D3';
+                // 第四步：Q6+Q7 ≥ 4 → 按Q8-Q10的C数量
+                if (cCount === 0) dType = 'D1';  // 没C → D1积极型
+                else if (cCount === 1) dType = 'D4'; // 1个C → D4嘉豪型
+                else if (cCount === 2) dType = 'D3'; // 2个C → D3天选之人
+                else if (cCount >= 3) dType = 'D5'; // 3个C → D5傻福型
             }
 
             // 八卦计算（河洛数 → 先天八卦）
