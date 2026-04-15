@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>算命仙人 - 小友，算算天命如何？</title>
+    <meta property="og:title" content="我算出了【卦象】，你的天命是什么？">
+    <meta property="og:description" content="🔮 小友，来测测你是哪种卦象！">
+    <meta property="og:image" content="https://israel-rain.github.io/suanming/og-card.png">
+    <meta property="og:url" content="https://israel-rain.github.io/suanming/">
+    <meta property="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -818,6 +823,83 @@
             canvas.height = window.innerHeight;
         }
         resizeCanvas();
+
+        // ========== URL参数检测（分享链接直出结果）==========
+        function showResultFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const guaKey = params.get('gua');
+            if (guaKey === null) return; // 无参数，正常流程
+
+            const hexagrams = {
+                1:  { symbol: "☰", name: "乾卦", motto: "天行健", desc: "你是天生的领导者，拥有强烈的进取心和征服欲。你不甘于现状，总是渴望创造新的可能。" },
+                2:  { symbol: "☱", name: "兑卦", motto: "悦言开", desc: "你是天生的社交高手，热情洋溢，擅长润滑关系、化解矛盾，是朋友圈里的开心果。" },
+                3:  { symbol: "☲", name: "离卦", motto: "火耀光", desc: "你热情似火，表达力强，光芒万丈。你是那种走到哪里都能成为焦点的人。" },
+                4:  { symbol: "☳", name: "震卦", motto: "惊蛰动", desc: "你行动力十足，一鸣惊人。你是那种在关键时刻能够突破困境、力挽狂澜的人。" },
+                6:  { symbol: "☴", name: "巽卦", motto: "风送暖", desc: "你如水般灵动，适应力强，擅长渗透和沟通。你是人群中的协调者，化解冲突于无形。" },
+                7:  { symbol: "☵", name: "坎卦", motto: "水润泽", desc: "你深邃而有洞察力，危机感强，思考深入。你是那种看透事物本质的人。" },
+                8:  { symbol: "☶", name: "艮卦", motto: "山有靠", desc: "你稳重可靠，坚守原则，脚踏实地。你是那种能给人安全感的人。" },
+                0:  { symbol: "☷", name: "坤卦", motto: "地势坤", desc: "你承载万物，包容大度，柔顺而有力量。你是那种默默支撑、不可或缺的人。" }
+            };
+
+            const hexagram = hexagrams[parseInt(guaKey)];
+            if (!hexagram) return; // 参数无效，正常流程
+
+            // 隐藏首页，直接显示结果
+            document.getElementById('home-page').classList.add('hidden');
+            const resultPage = document.getElementById('result-page');
+            const resultHexagram = document.getElementById('result-hexagram');
+
+            resultHexagram.innerHTML = `
+                <div class="hexagram-symbol">${hexagram.symbol}</div>
+                <div class="hexagram-name">${hexagram.name}</div>
+                <div class="hexagram-motto">—— ${hexagram.motto}</div>
+                <div class="hexagram-desc">${hexagram.desc}</div>
+            `;
+
+            // 预设的占位内容（确保结构完整）
+            document.getElementById('result-avatar').innerHTML = `
+                <div style="font-size:80px; margin-bottom:12px;">${hexagram.symbol}</div>
+                <div style="font-size:14px; color:#888; margin-bottom:8px;">我是${hexagram.name}</div>
+            `;
+
+            const categories = [
+                { tag: '🎯 命中注定', desc: '每道选择题都藏着你的性格密码，测完你就知道自己是哪种卦象了！' },
+                { tag: '🍀 玄学上头', desc: '评论区全是「好准！」「破防了」——不信你也试试，反正不要钱。' },
+                { tag: '📊 赛博玄学', desc: '大数据+玄学=当代年轻人的精神按摩，不接受反驳。' }
+            ];
+            const cat = categories[parseInt(guaKey) % 3];
+
+            // 补充个人画像卡片
+            let profileCards = '';
+            if (document.querySelector('.result-profile')) {
+                document.querySelector('.result-profile').innerHTML = `
+                    <div class="profile-tag">${cat.tag}</div>
+                    <div class="profile-desc">${cat.desc}</div>
+                `;
+            }
+            if (document.querySelector('.result-tip')) {
+                document.querySelector('.result-tip').innerHTML = `
+                    <div class="profile-tag">${cat.tag}</div>
+                    <div class="profile-desc">${cat.desc}</div>
+                `;
+            }
+
+            // 更新分享 OG tag
+            document.querySelector('meta[property="og:title"]').setAttribute('content', `我算出了【${hexagram.name}】，你的天命是什么？`);
+
+            // 页面滚动到顶部再显示结果（带延迟确保动画）
+            window.scrollTo(0, 0);
+            resultPage.classList.add('active');
+
+            // 添加提示条
+            const tipBar = document.createElement('div');
+            tipBar.style.cssText = 'position:fixed; top:0; left:0; right:0; background:#fff3cd; color:#856404; text-align:center; padding:8px 16px; font-size:13px; z-index:9999; border-bottom:1px solid #ffeeba;';
+            tipBar.textContent = '👆 这是朋友分享给你的卦象，你可以「再算一卦」看自己的';
+            document.body.appendChild(tipBar);
+        }
+
+        // 页面加载时检测 URL 参数
+        showResultFromUrl();
 
         // 八卦符号列表
         const HEXAGRAMS = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷'];
@@ -1695,10 +1777,19 @@
         // ========== 分享 & 重试 ==========
         function shareResult() {
             const hexName = (document.querySelector('.hexagram-name') || {}).textContent || '卦';
-            const text = `🔮 刚测了「算命仙人」，我是${hexName}！\n\n你也来试试？👇\nhttps://israel-rain.github.io/suanming/`;
+            const hexSymbol = (document.querySelector('.hexagram-symbol') || {}).textContent || '☰';
+            // 八卦名→数字key映射
+            const nameToKey = { '乾卦': 1, '兑卦': 2, '离卦': 3, '震卦': 4, '巽卦': 6, '坎卦': 7, '艮卦': 8, '坤卦': 0 };
+            const hexKey = nameToKey[hexName] ?? 1;
+            const shareUrl = `https://israel-rain.github.io/suanming/?gua=${hexKey}`;
+            const text = `${hexSymbol} 我算出了「${hexName}」！\n\n小友，你的天命是什么？👇\n${shareUrl}`;
+
+            // 更新当前页面的 OG tag（供粘贴分享时预览用）
+            document.querySelector('meta[property="og:title"]').setAttribute('content', `我算出了【${hexName}】，你的天命是什么？`);
+            document.querySelector('meta[property="og:url"]').setAttribute('content', shareUrl);
 
             if (navigator.share) {
-                navigator.share({ title: '算命仙人', text });
+                navigator.share({ title: '算命仙人', text, url: shareUrl });
             } else {
                 navigator.clipboard.writeText(text).then(() => {
                     alert('已复制到剪贴板！快去朋友圈发吧~');
