@@ -225,10 +225,9 @@
             transform: scale(1.02);
         }
 
-        /* ========== 转盘样式 (Q1) - 可拖动旋转 ========== */
+        /* ========== iOS风格滚筒选择器 (Q1) ========== */
         .wheel-picker-container {
             width: 100%;
-            max-width: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -237,87 +236,107 @@
         .wheel-label {
             font-size: 18px;
             color: #c05700;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-weight: 600;
         }
 
-        .wheel-wrapper {
+        /* 滚筒视窗 */
+        .wheel-viewport {
             position: relative;
-            width: 300px;
-            height: 175px;
-            cursor: grab;
-            touch-action: none;
-            user-select: none;
+            width: 200px;
+            height: 220px;
+            overflow: hidden;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(200,180,150,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);
         }
 
-        .wheel-wrapper:active {
+        /* 上下渐变遮罩，模拟iOS选择效果 */
+        .wheel-mask-top,
+        .wheel-mask-bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .wheel-mask-top {
+            top: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
+        }
+        .wheel-mask-bottom {
+            bottom: 0;
+            background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
+        }
+
+        /* 选中指示线 */
+        .wheel-selection-indicator {
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            right: 8px;
+            height: 48px;
+            transform: translateY(-50%);
+            border-radius: 12px;
+            background: rgba(230, 126, 34, 0.12);
+            border: 1.5px solid rgba(230, 126, 34, 0.35);
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        /* 滚筒可拖动区域 */
+        .wheel-scroll-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .wheel-scroll-area:active {
             cursor: grabbing;
         }
 
-        .wheel-svg {
-            width: 300px;
-            height: 175px;
-            overflow: visible;
-        }
-
-        .wheel-segment-path {
-            fill: rgba(255, 255, 255, 0.95);
-            stroke: rgba(200, 180, 150, 0.5);
-            stroke-width: 1.5;
-            transition: fill 0.2s ease;
-        }
-
-        .wheel-segment-path.selected {
-            fill: #e67e22;
-            stroke: #d35400;
-        }
-
-        .wheel-segment-text {
-            font-size: 13px;
-            font-weight: 600;
-            fill: #5a5a5a;
+        /* 单个年份条目 */
+        .wheel-item {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #bbb;
+            transition: color 0.15s ease, opacity 0.15s ease;
+            will-change: transform, opacity, color;
             pointer-events: none;
-            dominant-baseline: middle;
-            text-anchor: middle;
-            transition: fill 0.2s ease;
         }
 
-        .wheel-segment-text.selected {
-            fill: #fff;
+        .wheel-item.selected {
+            color: #c05700;
+            font-size: 24px;
         }
 
-        .wheel-pointer {
-            position: absolute;
-            bottom: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 14px solid transparent;
-            border-right: 14px solid transparent;
-            border-bottom: 22px solid #e67e22;
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(230, 126, 34, 0.4));
-        }
-
-        .wheel-center-text {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 26px;
-            font-weight: bold;
-            color: #e67e22;
-            z-index: 5;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            min-width: 60px;
+        /* 提示文字 */
+        .wheel-hint {
+            margin-top: 12px;
+            font-size: 13px;
+            color: rgba(100,100,100,0.5);
             text-align: center;
         }
 
         .confirm-btn {
-            margin-top: 15px;
-            padding: 12px 36px;
-            font-size: 15px;
+            margin-top: 20px;
+            padding: 13px 40px;
+            font-size: 16px;
             font-weight: bold;
             border: none;
             border-radius: 25px;
@@ -327,11 +346,17 @@
             opacity: 0.4;
             pointer-events: none;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230,126,34,0.3);
         }
 
         .confirm-btn.active {
             opacity: 1;
             pointer-events: auto;
+        }
+
+        .confirm-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 8px rgba(230,126,34,0.3);
         }
 
         /* 底部提示 */
@@ -589,15 +614,18 @@
                 padding: 50px 15px 90px;
             }
 
-            .wheel-wrapper {
-                width: 280px;
-                height: 170px;
+            .wheel-viewport {
+                width: 180px;
+                height: 200px;
             }
 
-            .wheel-segment {
-                width: 70px;
-                height: 55px;
-                font-size: 14px;
+            .wheel-item {
+                font-size: 18px;
+                height: 40px;
+            }
+
+            .wheel-item.selected {
+                font-size: 22px;
             }
         }
     </style>
@@ -808,6 +836,7 @@
         let hasMoved = false;
         let isTouchOnOption = false;
         let selectedYear = null;
+        let yearConfirmed = false; // Q1年份是否已确认，决定是否允许页面滑动
 
         const slideContainer = document.getElementById('slide-container');
         const questionPage = document.getElementById('question-page');
@@ -819,7 +848,9 @@
             selectedOption = -1;
             answers = [];
             selectedYear = null;
-            wheelRotation = 0;
+            yearConfirmed = false;
+            wheelOffset = 0;
+            currentWheelIndex = 8;
 
             document.getElementById('home-page').classList.add('hidden');
             generateSlides();
@@ -874,43 +905,6 @@
         }
 
         function generateWheelHTML(index, years) {
-            // SVG半圆形轮盘 - 指针在底部固定，拖动轮盘旋转
-            const cx = 150, cy = 140, radius = 120;
-            const numSegments = years.length; // 15个年份
-            const arcAngle = 180 / (numSegments - 1); // 每个间隔12.86度
-
-            // 计算每个年份的位置（相对于圆心）
-            const segmentPositions = years.map((year, i) => {
-                const angle = Math.PI - (i * arcAngle * Math.PI / 180); // 从左(π)到右(0)
-                const x = cx + (radius - 15) * Math.cos(angle);
-                const y = cy - (radius - 15) * Math.sin(angle);
-                return { year, x, y, angle };
-            });
-
-            // 生成SVG片段和文字
-            const paths = segmentPositions.map((seg, i) => {
-                const angle1 = Math.PI - (i * arcAngle * Math.PI / 180);
-                const angle2 = Math.PI - ((i + 1) * arcAngle * Math.PI / 180);
-                const x1 = cx + (radius - 5) * Math.cos(angle1);
-                const y1 = cy - (radius - 5) * Math.sin(angle1);
-                const x2 = cx + (radius - 5) * Math.cos(angle2);
-                const y2 = cy - (radius - 5) * Math.sin(angle2);
-                const x3 = cx + radius * Math.cos(angle2);
-                const y3 = cy - radius * Math.sin(angle2);
-                const x4 = cx + radius * Math.cos(angle1);
-                const y4 = cy - radius * Math.sin(angle1);
-
-                const path = `M ${cx} ${cy} L ${x1} ${y1} A ${radius - 5} ${radius - 5} 0 0 1 ${x2} ${y2} Z`;
-                return `<path class="wheel-segment-path" id="seg-${i}" d="${path}" data-index="${i}"/>`;
-            }).join('');
-
-            const texts = segmentPositions.map((seg, i) => {
-                return `<text class="wheel-segment-text" id="txt-${i}" x="${seg.x.toFixed(1)}" y="${seg.y.toFixed(1)}">${seg.year}</text>`;
-            }).join('');
-
-            // 指针三角形（底部固定）
-            const pointerPath = `M ${cx} ${cy + 5} L ${cx - 12} ${cy + 32} L ${cx + 12} ${cy + 32} Z`;
-
             return `
                 <div class="question-content">
                     <div class="progress-bar">
@@ -919,68 +913,168 @@
                     <div class="question-number">第 ${index + 1} 题</div>
                     <div class="wheel-picker-container">
                         <div class="wheel-label">🎯 生辰八字</div>
-                        <div class="wheel-wrapper" id="wheel-wrapper">
-                            <svg class="wheel-svg" id="wheel-svg" viewBox="0 0 300 175">
-                                <!-- 半圆弧背景 -->
-                                <path d="M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}" 
-                                      fill="none" stroke="rgba(200,180,150,0.2)" stroke-width="2"/>
-                                <!-- 可旋转的年份组 -->
-                                <g id="wheel-rotatable">
-                                    ${paths}
-                                    ${texts}
-                                </g>
-                                <!-- 圆心 -->
-                                <circle cx="${cx}" cy="${cy}" r="6" fill="rgba(200,180,150,0.3)"/>
-                                <!-- 固定指针 -->
-                                <path d="${pointerPath}" fill="#e67e22" filter="url(#pointer-shadow)"/>
-                                <defs>
-                                    <filter id="pointer-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(230,126,34,0.4)"/>
-                                    </filter>
-                                </defs>
-                            </svg>
-                            <div class="wheel-pointer"></div>
-                            <div class="wheel-center-text" id="selected-year-display">?</div>
+                        <div class="wheel-viewport" id="wheel-viewport">
+                            <div class="wheel-mask-top"></div>
+                            <div class="wheel-selection-indicator"></div>
+                            <div class="wheel-mask-bottom"></div>
+                            <div class="wheel-scroll-area" id="wheel-scroll-area"></div>
                         </div>
+                        <div class="wheel-hint">上下滑动选择年份</div>
                         <button class="confirm-btn" id="year-confirm-btn">确认年份</button>
                     </div>
                 </div>
             `;
         }
 
-        // ========== Q1轮盘拖动逻辑 ==========
-        let wheelRotation = 0;
-        let isWheelDragging = false;
-        let wheelDragStartX = 0;
-        let wheelDragStartRotation = 0;
-        let wheelVelocity = 0;
-        let lastWheelX = 0;
-        let lastWheelTime = 0;
+        // ========== Q1 iOS风格滚筒选择器 ==========
         const wheelYears = [2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996];
-        const wheelArcDeg = 180 / (wheelYears.length - 1); // 12.857度/格
+        const ITEM_HEIGHT = 44;        // 每项高度
+        const VIEWPORT_HEIGHT = 220;   // 视窗高度
+        const VISIBLE_ITEMS = 5;       // 可见项数
+        const HALF_VISIBLE = Math.floor(VISIBLE_ITEMS / 2); // 2
+
+        let wheelOffset = 0;           // 当前滚动偏移（px）
+        let wheelVelocity = 0;
+        let lastWheelY = 0;
+        let lastWheelTime = 0;
+        let isWheelDragging = false;
+        let wheelAnimating = false;
+        let currentWheelIndex = 8;     // 默认选中 2002（索引8）
 
         function setupWheelDrag() {
-            const wrapper = document.getElementById('wheel-wrapper');
-            if (!wrapper) return;
+            const scrollArea = document.getElementById('wheel-scroll-area');
+            if (!scrollArea) return;
 
-            wrapper.addEventListener('mousedown', startWheelDrag);
-            wrapper.addEventListener('touchstart', startWheelDrag, { passive: false });
+            // 渲染年份条目
+            renderWheelItems();
 
-            document.addEventListener('mousemove', moveWheelDrag);
+            // 初始吸附到中间位置
+            setTimeout(() => {
+                snapWheelToIndex(currentWheelIndex, false);
+            }, 50);
+
+            scrollArea.addEventListener('mousedown', startWheelDrag);
+            scrollArea.addEventListener('touchstart', startWheelDrag, { passive: false });
+            document.addEventListener('mousemove', moveWheelDrag, { passive: false });
             document.addEventListener('touchmove', moveWheelDrag, { passive: false });
-
             document.addEventListener('mouseup', endWheelDrag);
             document.addEventListener('touchend', endWheelDrag);
+
+            // 桌面端鼠标滚轮支持
+            const viewport = document.getElementById('wheel-viewport');
+            if (viewport) {
+                viewport.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const delta = e.deltaY > 0 ? 1 : -1;
+                    const targetIndex = Math.max(0, Math.min(wheelYears.length - 1, currentWheelIndex + delta));
+                    snapWheelToIndex(targetIndex, true);
+                }, { passive: false });
+            }
+        }
+
+        function renderWheelItems() {
+            const scrollArea = document.getElementById('wheel-scroll-area');
+            if (!scrollArea) return;
+            scrollArea.innerHTML = '';
+
+            wheelYears.forEach((year, i) => {
+                const item = document.createElement('div');
+                item.className = 'wheel-item';
+                item.id = `wheel-item-${i}`;
+                item.textContent = year;
+                scrollArea.appendChild(item);
+            });
+        }
+
+        function updateWheelDisplay() {
+            const scrollArea = document.getElementById('wheel-scroll-area');
+            if (!scrollArea) return;
+
+            // 计算当前哪个年份在中心
+            const rawIndex = wheelOffset / ITEM_HEIGHT;
+            let centerIndex = Math.round(-rawIndex);
+            centerIndex = Math.max(0, Math.min(wheelYears.length - 1, centerIndex));
+
+            // 对所有条目应用 transform
+            wheelYears.forEach((year, i) => {
+                const item = document.getElementById(`wheel-item-${i}`);
+                if (!item) return;
+
+                const itemOffset = i * ITEM_HEIGHT + wheelOffset;
+                const distFromCenter = Math.abs(itemOffset + ITEM_HEIGHT / 2 - VIEWPORT_HEIGHT / 2);
+                const maxDist = ITEM_HEIGHT * HALF_VISIBLE;
+
+                // scale: 中心=1.0，边缘=0.7
+                const scale = Math.max(0.68, 1 - (distFromCenter / maxDist) * 0.32);
+                // opacity: 中心=1，边缘=0.3
+                const opacity = Math.max(0.25, 1 - (distFromCenter / maxDist) * 0.75);
+                // color
+                const isSelected = i === centerIndex;
+
+                item.style.transform = `translateY(${itemOffset}px) scale(${scale})`;
+                item.style.opacity = opacity;
+                item.classList.toggle('selected', isSelected);
+            });
+
+            selectedYear = wheelYears[centerIndex];
+            currentWheelIndex = centerIndex;
+
+            // 启用确认按钮
+            const confirmBtn = document.getElementById('year-confirm-btn');
+            if (confirmBtn) {
+                confirmBtn.classList.add('active');
+                confirmBtn.onclick = () => {
+                    yearConfirmed = true;
+                    answers[0] = selectedYear;
+                    nextHint.classList.remove('show');
+                    setTimeout(() => goToNext(), 300);
+                };
+            }
+        }
+
+        function snapWheelToIndex(targetIndex, animate = true) {
+            const rawOffset = -targetIndex * ITEM_HEIGHT;
+
+            if (!animate) {
+                wheelOffset = rawOffset;
+                updateWheelDisplay();
+                return;
+            }
+
+            wheelAnimating = true;
+            const startOffset = wheelOffset;
+            const startTime = performance.now();
+            const duration = 200;
+
+            function animateSnap(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // ease-out cubic
+                const ease = 1 - Math.pow(1 - progress, 3);
+
+                wheelOffset = startOffset + (rawOffset - startOffset) * ease;
+                updateWheelDisplay();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSnap);
+                } else {
+                    wheelOffset = rawOffset;
+                    wheelAnimating = false;
+                    updateWheelDisplay();
+                }
+            }
+            requestAnimationFrame(animateSnap);
         }
 
         function startWheelDrag(e) {
             e.preventDefault();
+            e.stopPropagation(); // 阻止冒泡到 questionPage 的 touchstart
             isWheelDragging = true;
-            isDragging = false; // 轮盘拖动不触发页面滑动
+            wheelAnimating = false;
+            isDragging = false; // 明确不触发页面滑动
             const point = e.touches ? e.touches[0] : e;
-            wheelDragStartX = point.clientX;
-            wheelDragStartRotation = wheelRotation;
-            lastWheelX = point.clientX;
+            lastWheelY = point.clientY;
             lastWheelTime = Date.now();
             wheelVelocity = 0;
         }
@@ -988,145 +1082,50 @@
         function moveWheelDrag(e) {
             if (!isWheelDragging) return;
             e.preventDefault();
+            e.stopPropagation(); // 阻止冒泡到 questionPage
 
             const point = e.touches ? e.touches[0] : e;
-            const deltaX = point.clientX - wheelDragStartX;
-
-            // 将横向移动映射到旋转角度
-            // 拖动 1px ≈ 旋转 0.3度
-            const sensitivity = 0.35;
-            wheelRotation = wheelDragStartRotation + deltaX * sensitivity;
-
-            // 更新视觉
-            const rotatable = document.getElementById('wheel-rotatable');
-            if (rotatable) {
-                rotatable.style.transformOrigin = '150px 140px';
-                rotatable.style.transform = `rotate(${wheelRotation}deg)`;
-            }
-
-            // 计算速度
+            const deltaY = point.clientY - lastWheelY;
             const now = Date.now();
             const dt = now - lastWheelTime;
+
             if (dt > 0) {
-                wheelVelocity = (point.clientX - lastWheelX) / dt * 1000;
+                wheelVelocity = deltaY / dt * 16; // px/frame
             }
-            lastWheelX = point.clientX;
+            lastWheelY = point.clientY;
             lastWheelTime = now;
 
-            // 更新选中状态
-            updateWheelSelection();
+            wheelOffset += deltaY;
+
+            // 边界弹性
+            const maxOffset = 0;
+            const minOffset = -(wheelYears.length - 1) * ITEM_HEIGHT;
+            if (wheelOffset > maxOffset) {
+                wheelOffset = maxOffset + (wheelOffset - maxOffset) * 0.4;
+            } else if (wheelOffset < minOffset) {
+                wheelOffset = minOffset + (wheelOffset - minOffset) * 0.4;
+            }
+
+            updateWheelDisplay();
         }
 
         function endWheelDrag(e) {
             if (!isWheelDragging) return;
+            e.stopPropagation(); // 阻止冒泡
             isWheelDragging = false;
-            isDragging = false; // 重置，防止阻塞后续点击
 
-            // 应用惯性
-            if (Math.abs(wheelVelocity) > 50) {
-                applyWheelInertia();
-            } else {
-                // 吸附到最近的格
-                snapWheelToNearest();
+            // 吸附到最近的年份
+            const rawIndex = -wheelOffset / ITEM_HEIGHT;
+            let targetIndex = Math.round(rawIndex);
+            targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
+
+            // 加上惯性速度
+            if (Math.abs(wheelVelocity) > 1) {
+                targetIndex -= Math.round(wheelVelocity * 0.8);
+                targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
             }
-        }
 
-        function applyWheelInertia() {
-            const friction = 0.95;
-            const minVelocity = 0.5;
-            let velocity = wheelVelocity * 0.3; // 缩小惯性系数
-
-            function animate() {
-                if (Math.abs(velocity) < minVelocity) {
-                    snapWheelToNearest();
-                    return;
-                }
-                wheelRotation += velocity * 0.02;
-                velocity *= friction;
-
-                const rotatable = document.getElementById('wheel-rotatable');
-                if (rotatable) {
-                    rotatable.style.transformOrigin = '150px 140px';
-                    rotatable.style.transform = `rotate(${wheelRotation}deg)`;
-                }
-                updateWheelSelection();
-                requestAnimationFrame(animate);
-            }
-            requestAnimationFrame(animate);
-        }
-
-        function snapWheelToNearest() {
-            // 计算当前指针（第0格）对应的年份索引
-            // 指针在顶部(0度位置)，轮盘旋转后，哪个年份对准指针？
-            // normalizedRotation 是让第0格对准指针需要的旋转
-            const normalizedRotation = ((wheelRotation % 360) + 360) % 360;
-            let closestIndex = Math.round(normalizedRotation / wheelArcDeg);
-
-            // 吸附动画
-            const targetRotation = closestIndex * wheelArcDeg;
-            const startRotation = wheelRotation;
-            const diff = targetRotation - (normalizedRotation % 360);
-            let adjustedDiff = diff;
-            if (diff > 180) adjustedDiff = diff - 360;
-            if (diff < -180) adjustedDiff = diff + 360;
-            const target = startRotation + adjustedDiff;
-
-            let startTime = null;
-            function animateSnap(time) {
-                if (!startTime) startTime = time;
-                const progress = Math.min((time - startTime) / 200, 1);
-                const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-
-                wheelRotation = startRotation + (target - startRotation) * ease;
-
-                const rotatable = document.getElementById('wheel-rotatable');
-                if (rotatable) {
-                    rotatable.style.transformOrigin = '150px 140px';
-                    rotatable.style.transform = `rotate(${wheelRotation}deg)`;
-                }
-                updateWheelSelection();
-
-                if (progress < 1) requestAnimationFrame(animateSnap);
-            }
-            requestAnimationFrame(animateSnap);
-        }
-
-        function updateWheelSelection() {
-            // 指针在顶部(0度视觉位置)，计算哪个年份对准指针
-            // wheelRotation 是当前旋转，正值=顺时针
-            // 对准指针的格索引 = round(normalizedRotation / arcDeg)
-            const normalizedRotation = ((wheelRotation % 360) + 360) % 360;
-            let selectedIndex = Math.round(normalizedRotation / wheelArcDeg);
-            selectedIndex = Math.max(0, Math.min(wheelYears.length - 1, selectedIndex));
-
-            selectedYear = wheelYears[selectedIndex];
-
-            // 更新视觉高亮
-            wheelYears.forEach((_, i) => {
-                const path = document.getElementById(`seg-${i}`);
-                const text = document.getElementById(`txt-${i}`);
-                if (path) {
-                    path.classList.toggle('selected', i === selectedIndex);
-                }
-                if (text) {
-                    text.classList.toggle('selected', i === selectedIndex);
-                }
-            });
-
-            // 更新中间显示
-            const display = document.getElementById('selected-year-display');
-            if (display) display.textContent = selectedYear;
-
-            // 启用确认按钮
-            const confirmBtn = document.getElementById('year-confirm-btn');
-            if (confirmBtn) {
-                confirmBtn.classList.add('active');
-                confirmBtn.onclick = () => {
-                    answers[0] = selectedYear;
-                    nextHint.classList.remove('show');
-                    setTimeout(() => goToNext(), 300);
-                };
-            }
+            snapWheelToIndex(targetIndex, true);
         }
 
         function shuffleArray(arr) {
@@ -1232,8 +1231,8 @@
             if (isAnimating) return;
             if (current >= questions.length - 1) return;
             
-            // Q1需要selectedYear
-            if (current === 0 && !selectedYear) return;
+            // Q1需要已确认的年份
+            if (current === 0 && !yearConfirmed) return;
             
             // 非Q1需要selectedOption
             if (current > 0 && selectedOption < 0) return;
@@ -1241,7 +1240,6 @@
             isAnimating = true;
 
             answers[current] = current === 0 ? selectedYear : selectedOption;
-            if (current === 0) answers.__wheelRotation = wheelRotation;
             current++;
             selectedOption = -1;
 
@@ -1269,15 +1267,13 @@
             selectedOption = answers[current] !== undefined ? answers[current] : -1;
             if (current === 0) {
                 selectedYear = answers[0];
-                // 恢复轮盘旋转
-                wheelRotation = answers.__wheelRotation || 0;
+                yearConfirmed = false;
+                // 恢复滚筒位置
+                const savedIndex = wheelYears.indexOf(selectedYear);
+                currentWheelIndex = savedIndex >= 0 ? savedIndex : 8;
                 setTimeout(() => {
-                    const rotatable = document.getElementById('wheel-rotatable');
-                    if (rotatable) {
-                        rotatable.style.transformOrigin = '150px 140px';
-                        rotatable.style.transform = `rotate(${wheelRotation}deg)`;
-                    }
-                    updateWheelSelection();
+                    wheelOffset = -currentWheelIndex * ITEM_HEIGHT;
+                    updateWheelDisplay();
                 }, 50);
             }
 
@@ -1435,9 +1431,15 @@
         // ========== 触摸事件 ==========
         questionPage.addEventListener('touchstart', (e) => {
             if (isAnimating) return;
-            
+
             const target = e.target;
-            isTouchOnOption = target.closest('.option') !== null || target.closest('.wheel-segment') !== null;
+            isTouchOnOption = target.closest('.option') !== null || target.closest('.wheel-scroll-area') !== null;
+
+            // Q1 未确认年份 → 禁止页面滑动（只能操作滚筒）
+            if (current === 0 && !yearConfirmed) {
+                isDragging = false;
+                return;
+            }
             
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
