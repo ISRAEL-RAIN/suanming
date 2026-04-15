@@ -1162,23 +1162,17 @@
 
             // 如果点击的是当前页
             if (slideIndex === current) {
-                // 非最后一题：选完后自动翻到下一页
-                if (current < questions.length - 1 && selectedOption >= 0) {
-                    nextHint.innerHTML = `
-                        <div class="next-hint-text">滑动翻页</div>
-                        <div class="next-arrow"><span>→</span></div>
-                    `;
+                // 最后一题：选完后立即出现"查看结果"按钮
+                if (current === questions.length - 1 && selectedOption >= 0) {
+                    answers[current] = selectedOption;
+                    nextHint.innerHTML = '<button class="view-result-btn" onclick="goToResult()">查看结果</button>';
+                    nextHint.classList.add('show');
+                } else if (current < questions.length - 1 && selectedOption >= 0) {
+                    // 非最后一题：立即隐藏hint，等动画完成再翻页
                     nextHint.classList.remove('show');
                     setTimeout(() => {
                         if (selectedOption >= 0) goToNext();
                     }, 300);
-                } else {
-                    // 最后一题，更新提示文字为"滑动翻页"
-                    nextHint.innerHTML = `
-                        <div class="next-hint-text">滑动翻页</div>
-                        <div class="next-arrow"><span>→</span></div>
-                    `;
-                    updateHint();
                 }
             }
         }
@@ -1401,13 +1395,13 @@
                 else if (cCount === 3) dType = 'D5'; // 3个C → D5傻福型
             }
 
-            // 八卦计算（根据v6文档）
-            // 男性：(100 - 出生年份后两位) ÷ 9，取余数，结果范围0-8（0≡9）
-            // 女性：(出生年份后两位 - 4) ÷ 9，取余数，结果范围0-8（0≡9）
+            // 八卦计算（河洛数 → 先天八卦）
+            // 男性：100 - 年份后两位，再对9取余（余0→坤卦，余5→特殊处理）
+            // 女性：年份后两位 + 6，再对9取余（余0→乾卦，余5→特殊处理）
             const yearLast2 = birthYear % 100;
             let remainder;
             if (answers[1] === 0) { // 男
-                remainder = ((100 - yearLast2 - 1) % 9 + 9) % 9; // 范围0-8
+                remainder = ((100 - yearLast2) % 9 + 9) % 9; // 范围0-8
             } else { // 女
                 remainder = ((yearLast2 + 6) % 9 + 9) % 9; // 范围0-8
             }
