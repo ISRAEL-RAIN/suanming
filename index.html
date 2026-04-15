@@ -225,6 +225,115 @@
             transform: scale(1.02);
         }
 
+        /* ========== 转盘样式 (Q1) ========== */
+        .wheel-picker-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wheel-label {
+            font-size: 18px;
+            color: #c05700;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 300px;
+            height: 180px;
+            margin-bottom: 20px;
+        }
+
+        .wheel-segment {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #5a5a5a;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(200, 180, 150, 0.5);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .wheel-segment:hover {
+            background: rgba(230, 126, 34, 0.1);
+            border-color: #e67e22;
+            transform: scale(1.05);
+        }
+
+        .wheel-segment.selected {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            border-color: #e67e22;
+            color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+        }
+
+        .wheel-arc {
+            position: absolute;
+            width: 300px;
+            height: 150px;
+            border: 3px solid rgba(200, 180, 150, 0.3);
+            border-bottom: none;
+            border-radius: 150px 150px 0 0;
+            top: 30px;
+            left: 0;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid #e67e22;
+            z-index: 10;
+        }
+
+        .wheel-center-text {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #e67e22;
+            z-index: 5;
+        }
+
+        .confirm-btn {
+            padding: 14px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            color: #fff;
+            cursor: pointer;
+            opacity: 0.5;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         /* 底部提示 */
         .next-hint {
             position: absolute;
@@ -273,7 +382,7 @@
             cursor: pointer;
         }
 
-        /* ========== 结果页 ========== */
+        /* ========== 结果页 (支持上下滚动) ========== */
         #result-page {
             position: absolute;
             top: 0;
@@ -283,13 +392,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             padding: 20px;
             opacity: 0;
             pointer-events: none;
             z-index: 20;
-            overflow-y: auto;
             background: linear-gradient(135deg, #fef9f3 0%, #fdf6e9 50%, #faf3e3 100%);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         #result-page.active {
@@ -301,7 +410,7 @@
             text-align: center;
             width: 90%;
             max-width: 450px;
-            padding: 20px 0;
+            padding: 20px 0 60px;
         }
 
         .result-badge {
@@ -432,6 +541,17 @@
             .slide-page {
                 padding: 50px 15px 90px;
             }
+
+            .wheel-wrapper {
+                width: 280px;
+                height: 170px;
+            }
+
+            .wheel-segment {
+                width: 70px;
+                height: 55px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -524,23 +644,85 @@
         animateParticles();
 
         // ========== 数据 ==========
+        // 题目内容（根据v6文档）
         const questions = [
-            { text: "周六早上10点，你的自然醒时间是？", options: ["已经醒了，在焦虑下周工作", "睡到下午才是对周末的尊重", "8点就醒，卷王体质", "管他几点，饿醒为止"] },
-            { text: "朋友圈看到同学又晒升职，你第一反应是？", options: ["点个赞，心里MMP", "划走，假装没看到", "评论区：恭喜！", "开始刷招聘软件"] },
-            { text: "领导晚上9点发消息，你会？", options: ["已读不回，明天再说", "秒回：好的收到！", "回：在忙，晚点联系", "直接装睡"] },
-            { text: "你买过最后悔的东西是？", options: ["健身卡，一次没去过", "囤的课，听了三节", "那件等瘦了再穿的衣服", "没后悔过，我很理智"] },
-            { text: "朋友约你出去玩，你的真实想法是？", options: ["在家躺着不香吗", "去！必须去！难得出门", "看心情，看天气", "去可以，但你得请客"] },
-            { text: "半夜睡不着，你通常在想什么？", options: ["人生的意义是什么", "明天又要上班...", "明天吃啥", "想不通的事太多了"] }
+            { 
+                text: "你的生辰八字是？", 
+                options: [], // 转盘特殊处理
+                isWheel: true,
+                years: [2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001, 2000, 1999, 1998, 1997, 1996]
+            },
+            { 
+                text: "你的性别是？", 
+                options: ["猛男/猛女", "猛男", "猛女"] 
+            },
+            { 
+                text: "假期作业你会？", 
+                options: ["早早写完，爽爽玩", "拖到最后几天写", "老师，我没带。。。"] 
+            },
+            { 
+                text: "周末晚上，你更想？", 
+                options: ["约朋友出去浪", "有人约的话也可以出去", "一个人待着"] 
+            },
+            { 
+                text: "微信群里突然99+，你会？", 
+                options: ["爬楼看完", "看一眼有没有@我", "划走"] 
+            },
+            { 
+                text: "你最近的精神状态更像？", 
+                options: ["冉冉红日升", "间歇性踌躇满志", "吃饭咬到舌头，水逆警告"] 
+            },
+            { 
+                text: "深夜躺在床上，你在想？", 
+                options: ["明天去哪浪", "脑子里乱七八糟", "后悔/担心", "烦，想哭。。。"] 
+            },
+            { 
+                text: ""完蛋了完蛋了"什么意思？", 
+                options: ["摊上大事了", "常规社死/挂科/被绿", "不玩"] 
+            },
+            { 
+                text: ""天王盖地虎"你会接？", 
+                options: ["宝塔镇河妖", "小鸡炖蘑菇", "论文还没写"] 
+            },
+            { 
+                text: "大脑CPU 90%算力用在？", 
+                options: ["工作/恋爱", "外卖满减精算", "正在计算中"] 
+            }
         ];
 
-        const results = [
-            { emoji: "🛋️", title: "你是「摆烂仙人」", desc: "躺平是你的信仰，摆烂是你的日常。你的人生格言是：能躺着绝不坐着，能摆烂绝不挣扎。仙人曰：你已得躺平真传，此乃大智慧也。", tags: ["躺平大师", "精神离职", "周末战神"] },
-            { emoji: "💪", title: "你是「卷王仙人」", desc: "嘴上说着摆烂，身体却很诚实。你是那种躺在床上刷招聘信息、焦虑到睡不着的人。仙人曰：你卷的不是工作，是那颗不安的心。", tags: ["间歇性踌躇", "持续性焦虑", "隐形卷王"] },
-            { emoji: "😶", title: "你是「精神离职仙人」", desc: "人在工位，魂已下班。你的身体在开会，灵魂在神游。工作是给老板做的，但脑子是自己的。", tags: ["身体在场", "灵魂出窍", "带薪摸鱼"] },
-            { emoji: "🙈", title: "你是「社恐仙人」", desc: "你的社交能量是有限的，用完就得回家充电。朋友聚会能不去就不去，群消息能不看就不看。", tags: ["已读不回", "在线隐身", "独处充电"] },
-            { emoji: "🗣️", title: "你是「嘴强王者」", desc: "理论大师，实操青铜。你能写出一万字躺平指南，却还是在焦虑中卷生卷死。仙人曰：想太多，做太少。", tags: ["想法巨人", "行动矮子", "内心戏王"] },
-            { emoji: "🧘", title: "你是「通透仙人」", desc: "你已经看透了一切，也接受了一切。你不卷不摆，不焦虑不佛系，主打一个顺其自然。仙人曰：你已修炼到无欲无求的境界。", tags: ["看透一切", "顺其自然", "人间清醒"] }
-        ];
+        // 个人画像模块文案
+        const profileModules = {
+            // A1: 学生焦虑
+            A1B1C1: { emoji: "📚", title: "卷王型学霸仙人", desc: "你的青春在试卷和补课中度过，但你不是甘于现状的人。你相信只要方向对了，努力总会有回报。想法很多，更重要的是把它做出来。朋友多、人脉广，是那种能带动气氛的学霸。", tags: ["主动进取", "外向型", "学生焦虑"] },
+            A1B1C2: { emoji: "🎯", title: "内敛型卷王仙人", desc: "你的青春在试卷和补课中度过，但你更愿意把时间留给自己。你相信积累的力量，今天的每一点努力，都是在为明天铺路。朋友不多，但每一个都是你真正认可的人。", tags: ["主动进取", "内向型", "学生焦虑"] },
+            A1B2C1: { emoji: "🌊", title: "社交型适应仙人", desc: "你以为毕业告别的是校园，后来才发现告别的是'还有时间慢慢来'的从容。但你有一种难得的沉稳，看准方向、借势而为，在合适的时候做出合适的选择。朋友多、人脉广。", tags: ["被动适应", "外向型", "学生焦虑"] },
+            A1B2C2: { emoji: "🧘", title: "沉稳型适应仙人", desc: "你以为毕业告别的是校园，但你更像是在风浪里找平衡的人——看准方向，借势而为。船到桥头自然直，这是你的人生哲学。一个人吃饭、一个人看电影，这些对你来说是舒服的状态。", tags: ["被动适应", "内向型", "学生焦虑"] },
+            A1B3C1: { emoji: "📋", title: "乖乖型学生仙人", desc: "你的青春在试卷和补课中度过，你相信大多数人的选择不会错——稳定、安全、不冒险。学习按部就班、步步为营。你擅长和人打交道，无论走到哪都能很快融入环境。", tags: ["中规中矩", "外向型", "学生焦虑"] },
+            A1B3C2: { emoji: "📖", title: "安静型乖学生仙人", desc: "你的青春在试卷和补课中度过，你不是那种有强烈胜负欲的人，但也绝不是躺平一族。在一条被标注好的路上，走得稳稳当当，不快也不掉队。", tags: ["中规中矩", "内向型", "学生焦虑"] },
+            // A2: 入世焦虑
+            A2B1C1: { emoji: "🚀", title: "冲劲型入世仙人", desc: "你以为毕业告别的是校园，后来才发现告别的是'还有时间慢慢来'的从容。但你不是那种冲在最前面的人，却更愿意花时间、花精力去打磨自己想做的事。朋友多、人脉广，是团队的润滑剂。", tags: ["主动进取", "外向型", "入世焦虑"] },
+            A2B1C2: { emoji: "💎", title: "专注型入世仙人", desc: "考研卷、考公难、找工作的人早已泛滥，你为上岸焦头烂额。但你相信积累的力量，今天的每一点努力，都是在为明天铺路。你愿意花时间打磨自己想做的事，朋友不多但都是精英。", tags: ["主动进取", "内向型", "入世焦虑"] },
+            A2B2C1: { emoji: "🎪", title: "灵活型入世仙人", desc: "你以为毕业告别的是校园，但你更像是在风浪里找平衡的人——看准方向，借势而为。船到桥头自然直。你擅长和人打交道，是那种能快速融入新环境的人。", tags: ["被动适应", "外向型", "入世焦虑"] },
+            A2B2C2: { emoji: "🌲", title: "淡定型入世仙人", desc: "考研卷、考公难、找工作的人早已泛滥，但你相信时间会犒赏那些认真做事的人。船到桥头自然直——这是你的人生哲学。一个人待着，对你来说是充电而不是孤独。", tags: ["被动适应", "内向型", "入世焦虑"] },
+            A2B3C1: { emoji: "🏢", title: "稳妥型入世仙人", desc: "你以为毕业告别的是校园，但你相信大多数人的选择不会错。规则是存在的，那就遵守它。学习、工作，按部就班、步步为营。朋友多，是那种大家都喜欢的靠谱同事。", tags: ["中规中矩", "外向型", "入世焦虑"] },
+            A2B3C2: { emoji: "📁", title: "安静型稳妥仙人", desc: "考研卷、考公难、找工作的人早已泛滥，但你不是那种有强烈胜负欲的人。规则是存在的，那就遵守它。学习、工作，按部就班、步步为营。", tags: ["中规中矩", "内向型", "入世焦虑"] },
+            // A3: 社畜焦虑
+            A3B1C1: { emoji: "⚡", title: "热血型社畜仙人", desc: "每天早上挤地铁的时候，你偶尔会恍惚：这是我想要的生活吗？但你不是甘于现状的人。你相信只要方向对了，努力总会有回报。朋友多、人脉广，是团队的发动机。", tags: ["主动进取", "外向型", "社畜焦虑"] },
+            A3B1C2: { emoji: "🔧", title: "匠人型社畜仙人", desc: "每天早上挤地铁的时候，你偶尔会恍惚：这是我想要的生活吗？但你不是甘于现状的人。你愿意花时间、花精力去打磨自己想做的事。你相信积累的力量，朋友不多但都是过命的交情。", tags: ["主动进取", "内向型", "社畜焦虑"] },
+            A3B2C1: { emoji: "🎭", title: "社交型社畜仙人", desc: "每天早上挤地铁的时候，你偶尔会恍惚：这是我想要的生活吗？但你是一种难得的沉稳，看准方向，借势而为。朋友多、人脉广，是那种走到哪都能混开的人。", tags: ["被动适应", "外向型", "社畜焦虑"] },
+            A3B2C2: { emoji: "🌙", title: "独处型社畜仙人", desc: "每天早上挤地铁的时候，你偶尔会恍惚：这是我想要的生活吗？但你相信时间会犒赏那些认真做事的人。船到桥头自然直——这是你的人生哲学。一个人待着，是你恢复能量的方式。", tags: ["被动适应", "内向型", "社畜焦虑"] },
+            A3B3C1: { emoji: "🏠", title: "安稳型社畜仙人", desc: "每天早上挤地铁的时候，你偶尔会恍惚：这是我想要的生活吗？但你相信大多数人的选择不会错。规则是存在的，那就遵守它。工作按部就班，朋友多，是大家眼中的老好人。", tags: ["中规中矩", "外向型", "社畜焦虑"] },
+            A3B3C2: { emoji: "📊", title: "本分区社畜仙人", desc: "每天早上挤地铁的时候，你偶尔会恍惚：这是我想要的生活吗？但你不是那种有强烈胜负欲的人。规则是存在的，那就遵守它。工作按部就班，步步为营。", tags: ["中规中矩", "内向型", "社畜焦虑"] }
+        };
+
+        // 未来预测文案
+        const predictions = {
+            D1: { emoji: "🌟", title: "大吉上签！", desc: "吉人自有天相！你最近的运势简直旺到不行！所有的好事都会接踵而至，你只需要做好准备迎接它们就行啦！", tags: ["大吉", "上上签", "吉人天相"] },
+            D2: { emoji: "🌅", title: "先苦后甜型", desc: "好事多磨！现在可能有点小挫折，但这都是为了让你更好的未来做铺垫。坚持住，光明就在前方！黎明前的黑暗最黑，但也最接近曙光！", tags: ["先苦后甜", "好事多磨", "黎明将至"] },
+            D3: { emoji: "💫", title: "天选之人型", desc: "双喜临门！正缘和财神爷都在向你招手！你是被命运眷顾的宠儿，无论是感情还是财运，都将迎来高光时刻！", tags: ["天选之人", "财运双旺", "桃花旺盛"] },
+            D4: { emoji: "🔮", title: "天机不可泄露型", desc: "你身上背负着某种特殊的使命，命运的齿轮正在悄悄转动。有些事情，现在还不是知道的时候。安心等待，时机到了自然会有答案。", tags: ["天机不可泄露", "背负天道", "静待时机"] },
+            D5: { emoji: "😇", title: "傻福型", desc: "傻人有傻福，心大福气自然来！别想太多，该吃吃该睡睡，开心最重要！你的傻气就是你的福气，简单快乐才是人生真谛！", tags: ["傻人有傻福", "心大福厚", "开心就好"] }
+        };
 
         // ========== 状态 ==========
         let current = 0;
@@ -554,7 +736,8 @@
         let touchCurrentX = 0;
         let dragStartTime = 0;
         let hasMoved = false;
-        let isTouchOnOption = false; // 标记触摸是否在选项上
+        let isTouchOnOption = false;
+        let selectedYear = null;
 
         const slideContainer = document.getElementById('slide-container');
         const questionPage = document.getElementById('question-page');
@@ -565,6 +748,7 @@
             current = 0;
             selectedOption = -1;
             answers = [];
+            selectedYear = null;
 
             document.getElementById('home-page').classList.add('hidden');
             generateSlides();
@@ -581,23 +765,31 @@
                 slide.className = 'slide-page';
                 slide.dataset.index = index;
 
-                const shuffled = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+                let content = '';
 
-                slide.innerHTML = `
-                    <div class="question-content">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${((index + 1) / questions.length) * 100}%"></div>
+                // Q1 转盘特殊处理
+                if (q.isWheel) {
+                    const years = q.years;
+                    content = generateWheelHTML(index, years);
+                } else {
+                    const shuffled = shuffleArray([...Array(q.options.length).keys()]);
+                    content = `
+                        <div class="question-content">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${((index + 1) / questions.length) * 100}%"></div>
+                            </div>
+                            <div class="question-number">第 ${index + 1} 题</div>
+                            <div class="question-text">${q.text}</div>
+                            <div class="options">
+                                ${q.options.map((opt, i) => `
+                                    <button class="option" data-option="${shuffled[i]}">${opt}</button>
+                                `).join('')}
+                            </div>
                         </div>
-                        <div class="question-number">第 ${index + 1} 题</div>
-                        <div class="question-text">${q.text}</div>
-                        <div class="options">
-                            ${q.options.map((opt, i) => `
-                                <button class="option" data-option="${shuffled[i]}">${opt}</button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
 
+                slide.innerHTML = content;
                 slideContainer.appendChild(slide);
             });
 
@@ -605,11 +797,85 @@
             document.querySelectorAll('.option').forEach(btn => {
                 btn.addEventListener('click', handleOptionClick);
             });
+
+            // 绑定转盘点击
+            document.querySelectorAll('.wheel-segment').forEach(btn => {
+                btn.addEventListener('click', handleWheelClick);
+            });
+        }
+
+        function generateWheelHTML(index, years) {
+            // 半圆形布局，年份排列在弧线上
+            const angleStep = 180 / (years.length - 1); // 180度分布
+            const segments = years.map((year, i) => {
+                const angle = 180 - (i * angleStep); // 从左到右
+                const rad = angle * Math.PI / 180;
+                const radius = 110;
+                const centerX = 150;
+                const centerY = 140;
+                const x = centerX + radius * Math.cos(rad);
+                const y = centerY - radius * Math.sin(rad);
+                return `<button class="wheel-segment" data-year="${year}" style="left: ${x - 40}px; top: ${y - 30}px;">${year}</button>`;
+            }).join('');
+
+            return `
+                <div class="question-content">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${((index + 1) / questions.length) * 100}%"></div>
+                    </div>
+                    <div class="question-number">第 ${index + 1} 题</div>
+                    <div class="wheel-picker-container">
+                        <div class="wheel-label">🎯 生辰八字</div>
+                        <div class="wheel-wrapper">
+                            <div class="wheel-arc"></div>
+                            ${segments}
+                            <div class="wheel-pointer"></div>
+                            <div class="wheel-center-text" id="selected-year-display">?</div>
+                        </div>
+                        <button class="confirm-btn" id="year-confirm-btn">确认年份</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleWheelClick(e) {
+            if (isAnimating) return;
+            
+            const btn = e.target.closest('.wheel-segment');
+            if (!btn) return;
+
+            const year = parseInt(btn.dataset.year);
+            
+            // 移除其他选中
+            document.querySelectorAll('.wheel-segment').forEach(s => s.classList.remove('selected'));
+            
+            // 选中当前
+            btn.classList.add('selected');
+            selectedYear = year;
+            
+            // 更新中间显示
+            document.getElementById('selected-year-display').textContent = year;
+            
+            // 启用确认按钮
+            const confirmBtn = document.getElementById('year-confirm-btn');
+            confirmBtn.classList.add('active');
+            confirmBtn.onclick = () => {
+                answers[0] = year; // 保存年份
+                goToNext();
+            };
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
         }
 
         function handleOptionClick(e) {
             if (isAnimating) return;
-            if (isDragging) return; // 如果正在拖动，不处理点击
+            if (isDragging) return;
 
             const btn = e.target.closest('.option');
             if (!btn) return;
@@ -647,7 +913,7 @@
                 }
             } else {
                 // 非最后一题
-                if (selectedOption >= 0) {
+                if (selectedOption >= 0 || current === 0) { // Q1用selectedYear
                     nextHint.innerHTML = `
                         <div class="next-hint-text">已选，滑动翻页</div>
                         <div class="next-arrow"><span>→</span></div>
@@ -662,30 +928,44 @@
         function updateUI() {
             // 更新滑动位置
             slideContainer.style.transform = `translateX(${-current * 100}%)`;
-            // 重置选中状态
-            selectedOption = answers[current] !== undefined ? answers[current] : -1;
+            
+            // Q1特殊处理
+            if (current === 0) {
+                selectedOption = -1; // Q1不用selectedOption
+                nextHint.classList.remove('show');
+            } else {
+                // 重置选中状态
+                selectedOption = answers[current] !== undefined ? answers[current] : -1;
 
-            // 更新选项选中状态
-            const currentSlide = slideContainer.children[current];
-            if (currentSlide) {
-                currentSlide.querySelectorAll('.option').forEach(opt => {
-                    if (parseInt(opt.dataset.option) === selectedOption) {
-                        opt.classList.add('selected');
-                    } else {
-                        opt.classList.remove('selected');
-                    }
-                });
+                // 更新选项选中状态
+                const currentSlide = slideContainer.children[current];
+                if (currentSlide) {
+                    currentSlide.querySelectorAll('.option').forEach(opt => {
+                        if (parseInt(opt.dataset.option) === selectedOption) {
+                            opt.classList.add('selected');
+                        } else {
+                            opt.classList.remove('selected');
+                        }
+                    });
+                }
+                updateHint();
             }
-
-            updateHint();
         }
 
         // ========== 滑动翻页 ==========
         function goToNext() {
-            if (isAnimating || selectedOption < 0 || current >= questions.length - 1) return;
+            if (isAnimating) return;
+            if (current >= questions.length - 1) return;
+            
+            // Q1需要selectedYear
+            if (current === 0 && !selectedYear) return;
+            
+            // 非Q1需要selectedOption
+            if (current > 0 && selectedOption < 0) return;
+            
             isAnimating = true;
 
-            answers[current] = selectedOption;
+            answers[current] = current === 0 ? selectedYear : selectedOption;
             current++;
             selectedOption = -1;
 
@@ -695,6 +975,12 @@
             setTimeout(() => {
                 isAnimating = false;
                 selectedOption = answers[current] !== undefined ? answers[current] : -1;
+                
+                // 如果是最后一题
+                if (current === questions.length - 1) {
+                    selectedOption = answers[current] !== undefined ? answers[current] : -1;
+                }
+                
                 updateHint();
             }, 400);
         }
@@ -705,6 +991,9 @@
 
             current--;
             selectedOption = answers[current] !== undefined ? answers[current] : -1;
+            if (current === 0) {
+                selectedYear = answers[0];
+            }
 
             slideContainer.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
             slideContainer.style.transform = `translateX(${-current * 100}%)`;
@@ -717,8 +1006,9 @@
 
         function goToResult() {
             if (isAnimating) return;
+            if (selectedOption < 0) return;
+            
             isAnimating = true;
-
             answers[current] = selectedOption;
 
             // 隐藏答题页，显示结果页
@@ -728,9 +1018,9 @@
                 const resultPage = document.getElementById('result-page');
                 resultPage.classList.add('active');
 
-                const score = answers.reduce((a, b) => a + b, 0);
-                const result = results[score % results.length];
-
+                // 计算结果
+                const result = calculateResult();
+                
                 document.getElementById('result-type').textContent = result.emoji;
                 document.getElementById('result-title').textContent = result.title;
                 document.getElementById('result-desc').textContent = result.desc;
@@ -749,13 +1039,81 @@
             }, 300);
         }
 
+        // ========== 分类逻辑 ==========
+        function calculateResult() {
+            // answers数组: [0]=年份, [1]=性别, [2]=Q3, [3]=Q4, [4]=Q5, [5]=Q6, [6]=Q7, [7]=Q8, [8]=Q9, [9]=Q10
+            
+            const birthYear = answers[0]; // 年份
+            const q3 = answers[2]; // 适应策略
+            const q4 = answers[3]; // 社交1
+            const q5 = answers[4]; // 社交2
+            const q6 = answers[5]; // 精神状态1
+            const q7 = answers[6]; // 精神状态2
+            const q8 = answers[7]; // 抽象1
+            const q9 = answers[8]; // 抽象2
+            const q10 = answers[9]; // 抽象3
+
+            // 计算年龄
+            const currentYear = 2026;
+            const age = currentYear - birthYear;
+
+            // A维度：焦虑阶段（16~21岁A1，22~24岁A2，25~30岁A3）
+            let aType = 'A1';
+            if (age >= 22 && age <= 24) aType = 'A2';
+            else if (age >= 25 && age <= 30) aType = 'A3';
+
+            // B维度：适应策略（Q3直接决定：A→B1，B→B2，C→B3）
+            let bType = 'B1';
+            if (q3 === 1) bType = 'B2';
+            else if (q3 === 2) bType = 'B3';
+
+            // C维度：社交倾向（Q4+Q5评分：A=3，B=2，C=1，≥4分→C1外向，<4分→C2内向）
+            const cScore = getScore(q4) + getScore(q5);
+            const cType = cScore >= 4 ? 'C1' : 'C2';
+
+            // D维度：未来预测
+            const dScore = getScore(q6) + getScore(q7);
+            let dType = 'D1'; // 默认积极型
+
+            if (dScore < 4) {
+                // 小于4分 → 转折型D2
+                dType = 'D2';
+            } else {
+                // 大于等于4分，按Q8~Q10的C选项数量决定
+                const cCount = [q8, q9, q10].filter(q => q === 2).length;
+                if (cCount === 0) dType = 'D1'; // 0个C → D1积极型
+                else if (cCount === 1) dType = 'D4'; // 1个C → D4嘉豪型
+                else if (cCount === 2) dType = 'D3'; // 2个C → D3天选之人
+                else if (cCount === 3) dType = 'D5'; // 3个C → D5傻福型
+            }
+
+            // 组合画像
+            const profileKey = `${aType}${bType}${cType}`;
+            const profile = profileModules[profileKey] || profileModules['A1B1C1'];
+            const prediction = predictions[dType];
+
+            return {
+                emoji: profile.emoji,
+                title: `${profile.title} ${prediction.title}`,
+                desc: `${profile.desc}\n\n${prediction.desc}`,
+                tags: [...new Set([...profile.tags, ...prediction.tags])]
+            };
+        }
+
+        // 选项分数：A=3, B=2, C=1
+        function getScore(optionIndex) {
+            if (optionIndex === 0) return 3; // A选项
+            if (optionIndex === 1) return 2; // B选项
+            if (optionIndex === 2) return 1; // C选项
+            return 1; // 默认
+        }
+
         // ========== 触摸事件 ==========
         questionPage.addEventListener('touchstart', (e) => {
             if (isAnimating) return;
             
-            // 检查触摸是否在选项上
             const target = e.target;
-            isTouchOnOption = target.closest('.option') !== null;
+            isTouchOnOption = target.closest('.option') !== null || target.closest('.wheel-segment') !== null;
             
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -775,7 +1133,6 @@
             const deltaX = currentX - touchStartX;
             const deltaY = currentY - touchStartY;
 
-            // 区分水平滑动和垂直滑动
             if (!hasMoved) {
                 if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
                     isDragging = false;
@@ -786,15 +1143,12 @@
 
             touchCurrentX = currentX;
 
-            // 限制滑动范围
             let offset = -current * window.innerWidth + deltaX;
             const maxLeft = -(questions.length - 1) * window.innerWidth;
 
-            // 左滑限制
             if (offset < maxLeft) {
                 offset = maxLeft + (offset - maxLeft) * 0.3;
             }
-            // 右滑限制
             if (offset > 0) {
                 offset = offset * 0.3;
             }
@@ -806,7 +1160,6 @@
             if (!isDragging) return;
             isDragging = false;
             
-            // 如果触摸在选项上，不处理滑动
             if (isTouchOnOption) {
                 isTouchOnOption = false;
                 return;
@@ -818,12 +1171,10 @@
             const velocity = deltaTime > 0 ? Math.abs(deltaX) / deltaTime : 0;
             const threshold = window.innerWidth / 3;
 
-            // 判断是否是有效滑动（移动距离太小则忽略）
             if (Math.abs(deltaX) < 15) {
                 return;
             }
 
-            // 最后一题只能右滑返回
             if (current === questions.length - 1) {
                 if (deltaX > threshold || (deltaX > 30 && velocity > 0.3)) {
                     goToPrev();
@@ -833,16 +1184,13 @@
                 return;
             }
 
-            // 判断滑动方向和距离
             if (deltaX < -threshold || (deltaX < -50 && velocity > 0.4)) {
-                // 左滑 - 下一页（需要已选）
-                if (selectedOption >= 0) {
+                if (current === 0 ? selectedYear : selectedOption >= 0) {
                     goToNext();
                 } else {
                     snapBack();
                 }
             } else if (deltaX > threshold || (deltaX > 50 && velocity > 0.4)) {
-                // 右滑 - 上一页
                 goToPrev();
             } else {
                 snapBack();
@@ -862,14 +1210,14 @@
         // ========== 键盘支持 ==========
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight') {
-                if (selectedOption >= 0 && current < questions.length - 1) {
+                if (current === 0 ? selectedYear : selectedOption >= 0 && current < questions.length - 1) {
                     goToNext();
                 } else if (current === questions.length - 1 && selectedOption >= 0) {
                     goToResult();
                 }
             } else if (e.key === 'ArrowLeft') {
                 goToPrev();
-            } else if (e.key === 'Enter' && selectedOption >= 0) {
+            } else if (e.key === 'Enter' && (current === 0 ? selectedYear : selectedOption >= 0)) {
                 if (current < questions.length - 1) {
                     goToNext();
                 } else {
