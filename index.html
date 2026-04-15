@@ -661,12 +661,11 @@
             <div class="result-content">
                 <div class="result-badge">✨ 仙人掐指一算 ✨</div>
                 <!-- 八卦区 -->
+                <div class="result-section-label">「卦象」</div>
                 <div class="result-hexagram" id="result-hexagram"></div>
                 <h2 class="result-title" id="result-title"></h2>
                 <!-- 个人画像卡片 -->
                 <div class="result-card">
-                    <div class="result-section-label">【个人画像】</div>
-                    <div class="result-profile-emoji" id="result-profile-emoji"></div>
                     <p class="result-desc" id="result-desc"></p>
                     <div class="result-tags" id="result-tags"></div>
                 </div>
@@ -677,8 +676,8 @@
                     <div class="result-tags" id="result-prediction-tags"></div>
                 </div>
                 <div class="btn-group">
-                    <button class="share-btn" onclick="shareResult()">📱 发给朋友比惨</button>
-                    <button class="retry-btn" onclick="retry()">再摆一次烂</button>
+                    <button class="share-btn" onclick="shareResult()">📱 分享此卦</button>
+                    <button class="retry-btn" onclick="retry()">再算一挂</button>
                 </div>
             </div>
         </div>
@@ -1124,8 +1123,8 @@
             isWheelDragging = false;
 
             // 吸附到最近的年份（不使用velocity，防止越界）
-            // 中心公式: wheelOffset = 308 - i*44 → i = (330 - wheelOffset) / 44
-            const rawIndex = (330 - wheelOffset) / ITEM_HEIGHT;
+            // snap公式: wheelOffset = 308 - i*44 → 反算 i = (wheelOffset - 308) / 44
+            const rawIndex = (wheelOffset - 308) / ITEM_HEIGHT;
             let targetIndex = Math.round(rawIndex);
             targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
 
@@ -1276,7 +1275,7 @@
                 const savedIndex = wheelYears.indexOf(selectedYear);
                 currentWheelIndex = savedIndex >= 0 ? savedIndex : 8;
                 setTimeout(() => {
-                    wheelOffset = -currentWheelIndex * ITEM_HEIGHT;
+                    wheelOffset = 308 - currentWheelIndex * ITEM_HEIGHT;
                     updateWheelDisplay();
                 }, 50);
             }
@@ -1317,7 +1316,6 @@
                 document.getElementById('result-hexagram').innerHTML = hexHtml;
                 
                 document.getElementById('result-title').textContent = result.profile.title;
-                document.getElementById('result-profile-emoji').textContent = result.profile.emoji;
                 document.getElementById('result-desc').textContent = result.profile.desc;
 
                 // 个人画像标签
