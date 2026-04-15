@@ -855,7 +855,7 @@
             answers = [];
             selectedYear = null;
             yearConfirmed = false;
-            wheelOffset = 330 - 8 * ITEM_HEIGHT; // 2006年在视窗中心
+            wheelOffset = 308 - 8 * ITEM_HEIGHT; // 2006年在视窗中心330
             currentWheelIndex = 8;
 
             document.getElementById('home-page').classList.add('hidden');
@@ -1039,12 +1039,11 @@
         }
 
         function snapWheelToIndex(targetIndex, animate = true) {
-            // 视窗中心Y=330，item高度44px
             // item i 视觉中心 = i*44 + wheelOffset + 22
-            // 要使 item i 在视窗中心(330): wheelOffset = 330 - 22 - i*44 = 308 - i*44
-            // 但 minOffset=-264(年1996触底) / maxOffset=330(年2010居中)
-            // 统一用: wheelOffset = 330 - targetIndex * 44
-            const rawOffset = 330 - targetIndex * ITEM_HEIGHT;
+            // 要使 item i 在视窗中心(330):
+            //   i*44 + wheelOffset + 22 = 330 → wheelOffset = 308 - i*44
+            // 初始状态: i=8 → wheelOffset = 308 - 352 = -44
+            const rawOffset = 308 - targetIndex * ITEM_HEIGHT;
 
             if (!animate) {
                 wheelOffset = rawOffset;
@@ -1107,9 +1106,9 @@
 
             wheelOffset += deltaY;
 
-            // 边界弹性（maxOffset=330年2010居中，minOffset=-264年1996触底）
-            const maxOffset = 330;
-            const minOffset = -264;
+            // 边界弹性（minOffset=-308年1996在视窗中心，maxOffset=308年2010在视窗中心）
+            const maxOffset = 308;
+            const minOffset = -308;
             if (wheelOffset > maxOffset) {
                 wheelOffset = maxOffset + (wheelOffset - maxOffset) * 0.4;
             } else if (wheelOffset < minOffset) {
@@ -1125,7 +1124,7 @@
             isWheelDragging = false;
 
             // 吸附到最近的年份（不使用velocity，防止越界）
-            // 中心公式: wheelOffset = 330 - i*44 → i = (330 - wheelOffset) / 44
+            // 中心公式: wheelOffset = 308 - i*44 → i = (330 - wheelOffset) / 44
             const rawIndex = (330 - wheelOffset) / ITEM_HEIGHT;
             let targetIndex = Math.round(rawIndex);
             targetIndex = Math.max(0, Math.min(wheelYears.length - 1, targetIndex));
