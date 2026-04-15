@@ -948,10 +948,9 @@
             // 渲染年份条目
             renderWheelItems();
 
-            // 初始吸附到中间位置
-            setTimeout(() => {
-                snapWheelToIndex(currentWheelIndex, false);
-            }, 50);
+            // 初始状态：2006(2010-6)在视窗中心，不需要动画
+            wheelOffset = 308 - currentWheelIndex * ITEM_HEIGHT;
+            updateWheelDisplay();
 
             scrollArea.addEventListener('mousedown', startWheelDrag);
             scrollArea.addEventListener('touchstart', startWheelDrag, { passive: false });
@@ -1034,7 +1033,12 @@
         }
 
         function snapWheelToIndex(targetIndex, animate = true) {
-            const rawOffset = -targetIndex * ITEM_HEIGHT;
+            // 修正：需要补偿 flex 垂直居中偏移，使 targetIndex 正好落在视窗中心
+            const CENTER_OFFSET = VIEWPORT_HEIGHT / 2 + ITEM_HEIGHT / 2; // 330+22=352? No: viewport center(330) - itemCenterInFlex(22) = 308
+            // 视窗中心=330，flex居中后item0顶=308，item中心=330-22=308
+            // item i 的 visual Y = i*44 + wheelOffset + 22
+            // 要使 item i 视觉中心=330: wheelOffset = 330 - 22 - i*44 = 308 - i*44
+            const rawOffset = 308 - targetIndex * ITEM_HEIGHT;
 
             if (!animate) {
                 wheelOffset = rawOffset;
